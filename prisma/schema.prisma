@@ -1,0 +1,208 @@
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../generated/prisma" 
+  }
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+enum TicketCategory {
+  STANDARD
+  CHILD
+  STUDENT
+  EARLY_BID
+  FREE
+}
+
+
+enum UserRole {
+  USER 
+  ORGANISER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  CANCELLED
+  COMPLETED
+  ARCHIVED
+}
+
+enum EventRoleType {
+  OWNER
+  CO_ORGANISER
+  SPEAKER
+  MODERATOR
+  VOLUNTEER
+  SPONSOR
+  ATTENDEE
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  CANCELLED
+}
+
+model User {
+  id              String   @id @default(uuid())
+  email           String   @unique @db.VarChar(255)
+  passwordHash    String   @db.VarChar(255)
+  fullName        String   @db.VarChar(100)
+  avatarUrl       String?  @db.VarChar(500)
+  bio             String?
+  phoneNumber     String?  @db.VarChar(20)
+  isActive        Boolean  @default(true)
+  isEmailVerified Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  deletedAt       DateTime?
+  role            UserRole @default(USER)
+  tickets Ticket[]
+  orders Order[]
+  organizedEvents    Event[]
+  registrations      EventRegistration[]
+  eventRoles         EventRole[] @relation("relatedUser")
+  assignedBy EventRole[] @relation("AssignedBy")
+
+  @@map("users")
+}
+
+model Event {
+  id            String   @id @default(uuid())
+  organizerId   String
+  categoryId    String
+  title         String   @db.VarChar(200)
+  slug          String   @unique @db.VarChar(255)
+  description   String
+  coverImageUrl String?  @db.VarChar(500)
+  startDate     DateTime
+  endDate       DateTime
+  address       String   @db.VarChar(500)
+  latitude      Decimal? @db.Decimal(9, 6)
+  longitude     Decimal? @db.Decimal(9, 6)
+  capacity      Int
+  status        EventStatus @default(DRAFT)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  deletedAt     DateTime?
+
+  organizer     User     @relation(fields: [organizerId], references: [id])
+  category      Category @relation(fields: [categoryId], references: [id])
+  registrations EventRegistration[]
+  eventRoles EventRole[]
+  ticketTypes TicketType[]
+  orders Order[]
+
+  @@index([organizerId])
+  @@index([categoryId])
+  @@index([status, startDate])
+  @@map("events")
+}
+
+model EventRole {
+  id String  @id @default(uuid())
+  eventId String
+  userId String
+  assignedById String
+  role EventRoleType
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User @relation("relatedUser", fields: [userId], references: [id], onDelete: Cascade)
+  assignedByUser User @relation("AssignedBy", fields: [assignedById], references: [id])
+
+  assignedAt DateTime @default(now())
+  @@unique([eventId, userId])
+  @@index([eventId])
+  @@index([userId])
+  @@map("event_roles")
+}
+
+model Category {
+  id        String   @id @default(uuid())
+  name      String   @unique @db.VarChar(100)
+  slug      String   @unique @db.VarChar(255)
+  iconUrl   String?  @db.VarChar(500)
+  createdAt DateTime @default(now())
+
+  events Event[]
+
+  @@map("categories")
+}
+
+model EventRegistration {
+  id           String    @id @default(uuid())
+  eventId      String
+  userId       String
+  status       String    @default("REGISTERED") @db.VarChar(20)
+  registeredAt DateTime  @default(now())
+  cancelledAt  DateTime?
+
+  event Event @relation(fields: [eventId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+
+  @@unique([eventId, userId])
+  @@map("event_registrations")
+}
+
+model TicketType {
+  id String @id @default(uuid())
+  eventId String
+  name String
+  price Decimal @db.Decimal(10,2)
+  
+  totalCount Int
+  soldCount Int @default(0)
+
+  isActive Boolean @default(true)
+
+  category TicketCategory @default(STANDARD)
+
+  event Event @relation(fields: [eventId], references: [id])
+  tickets Ticket[]
+
+  createdAt DateTime @default(now())
+
+  @@map("ticket_types")
+}
+
+model Ticket {
+  id String @id @default(uuid())
+
+  ticketTypeId String
+  orderId String
+  userId String
+
+  isSold Boolean
+
+  ticketType TicketType @relation(fields: [ticketTypeId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+  order Order @relation(fields: [orderId], references: [id])
+  createdAt DateTime @default(now())
+  soldDate DateTime? 
+}
+
+model Order {
+  id String @id @default(uuid())
+  userId String
+  eventId String
+  totalAmount Decimal @db.Decimal(10, 2)
+  
+
+  status OrderStatus @default(PENDING) 
+  
+  user User @relation(fields: [userId], references: [id])
+  event Event @relation(fields: [eventId], references: [id])
+
+
+  tickets Ticket[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("orders")
+}
