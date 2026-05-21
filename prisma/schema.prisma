@@ -164,6 +164,7 @@ model TicketType {
 
   event Event @relation(fields: [eventId], references: [id])
   tickets Ticket[]
+  orderItems OrderItem[]
 
   createdAt DateTime @default(now())
 
@@ -174,16 +175,18 @@ model Ticket {
   id String @id @default(uuid())
 
   ticketTypeId String
-  orderId String
+  orderItemId String
   userId String
 
   isSold Boolean
 
   ticketType TicketType @relation(fields: [ticketTypeId], references: [id])
   user User @relation(fields: [userId], references: [id])
-  order Order @relation(fields: [orderId], references: [id])
+  orderItem OrderItem @relation(fields: [orderItemId], references: [id])
+
   createdAt DateTime @default(now())
   soldDate DateTime? 
+
 }
 
 model Order {
@@ -199,10 +202,28 @@ model Order {
   event Event @relation(fields: [eventId], references: [id])
 
 
-  tickets Ticket[]
+  orderItems OrderItem[]
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("orders")
+}
+
+//groups tickets by  ticketType and it applies this for just one ticketType
+//virtual orderItem, if the user doesnt buy ticket then ticket 
+model OrderItem {
+  id String @id @default(uuid())
+  orderId String 
+  ticketTypeId String
+
+  quantity Int
+  unitPrice Decimal @db.Decimal(10,2)
+  totalPrice Decimal @db.Decimal(10,2)
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  ticketType TicketType @relation(fields: [ticketTypeId], references: [id])
+  tickets Ticket[] //real tickets, will be created after payment
+   
+  @@map("order_items")
 }
