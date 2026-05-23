@@ -1,33 +1,120 @@
 const prisma = require("../utils/prismaClient");
+const stripe = require("../utils/stripeClient");
 
-const createPendingOrder = async (userId, eventId, cardItems) => {
-    return await prisma.$transaction(async (tx)=> {
-        const event = await tx.event.findUnique({
-            where: {id: eventId}
+
+//returns orderItemData
+//function for creating pending order with multiple orderitems
+const createOrder = async (userId, eventId, cartItems) => {
+    return await prisma.$transaction(async (tx) => {
+        let totalAmountData = 0;
+        const orderItemsData = [];
+
+        for (const ticket of cartItems) {
+            
+        const ticketTypes = await tx.$queryRaw`
+        SELECT * FROM "ticket_types" WHERE id = ${ticket.ticketTypeId} 
+        AND "eventId" = ${eventId} FOR UPDATE`;
+        const ticketType = ticketTypes[0];
+
+        if(!ticketType) throw new Error("ticket type  cant be found");
+
+        //find how many tickets are sold or reserved
+        const aggregations = await tx.orderItem.aggregate({
+            where: {
+                ticketTypeId: ticketType.id,
+                order: {
+                    status: { in: ["PENDING", "SUCCESS"]}
+                }
+            },  
+            _sum: {
+                quantity: true
+            }
+        })
+        const availableTickets = ticketType.totalCount - (aggregations._sum.quantity || 0);
+
+        //if the available tickets arent enough throw error
+        if(availableTickets < ticket.count) 
+            throw new Error("there is no enough tickets");
+
+        totalAmountData += ticketType.price * ticket.count;
+
+        //add each ticket type for creating orderItemsData 
+        orderItemsData.push({
+        ticketTypeId: ticket.ticketTypeId,
+        quantity: ticket.count,
+        unitPrice: ticketType.price,
+        totalPrice: ticketType.price * ticket.count
+        });
+    
+    }
+
+    const order = await tx.order.create({
+        data: {
+            userId: userId,
+            eventId: eventId,
+            totalAmount: totalAmountData,
+            status: "PENDING",
+            orderItems: {
+                create: orderItemsData
+            }
+
+        }
+    });
+
+    return order;
+
+    })
+};
+
+//convert orderitems to actual tickets
+const completePayment = async (orderId) => {
+   const order = await prisma.order.findUnique(
+        {where: {id: orderId},
+    include: {orderItems: true}
+    },
+    );
+
+    if(!order) throw new Error("order cant be found");
+
+    if(order.status == "SUCCESS")
+        throw new Error("this order is processed");
+
+    //create QR based tickets
+    await prisma.$transaction(async (tx) => {
+        const ticketsData = [];
+        //each orderıtem represents different types of orders based on 
+        //eachtickettypes
+        for (orderItem of order.orderItems) {
+            for (let i = 0; i < orderItem.quantity; i++) {
+                ticketsData.push({
+                    userId: order.userId,
+                    ticketTypeId: orderItem.ticketTypeId,
+                    orderItemId: orderItem.id,
+                    isSold: true,
+                    soldDate: new Date()
+                })
+        }}
+
+        await tx.ticket.createMany({
+            data: ticketsData
         });
 
-        if(!event || event.status !== "PUBLISHED"){
-            throw new Error("This event is not avaliable");
-        }
+        await tx.order.update({
+            where: {id: orderId},
+            data: {status: "SUCCESS"}
+        });
 
-        for (const ticket of cardItems) {
-
-            //get ticket type information and make security check
-            const ticketType = await tx.$queryRaw`
-            SELECT * FROM "ticket_types"
-            WHERE "id" = ${ticket.ticketTypeId}
-            FOR UPDATE
-            ` 
-
-            if(!ticketType) throw new Error("Invalid Ticket Type");
-
-            if(ticketType.eventId !== eventId)
-                throw new Error("This ticket doesnt belong to this event");
-    
-            if(!ticketType.isActive)
-                throw new Error(`${ticketType.name} This ticket type is closed to sale`)
-
-            //
-        }
     })
-} 
+}
+
+const createPaymentIntent = async (orderId, amount) => {
+    const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(amount* 100),
+        metadata: {orderId: orderId},
+        currency: "try"
+    })
+
+    return paymentIntent.client_secret;
+};
+
+module.exports = {createOrder, completePayment, createPaymentIntent};

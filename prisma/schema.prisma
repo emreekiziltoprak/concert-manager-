@@ -44,7 +44,7 @@ enum EventRoleType {
 
 enum OrderStatus {
   PENDING
-  PAID
+  SUCCESS
   CANCELLED
 }
 
@@ -156,7 +156,6 @@ model TicketType {
   price Decimal @db.Decimal(10,2)
   
   totalCount Int
-  soldCount Int @default(0)
 
   isActive Boolean @default(true)
 

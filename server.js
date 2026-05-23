@@ -6,13 +6,15 @@ const authRoutes = require("./src/routes/authRoutes");
 const categoryRoutes = require("./src/routes/categoryRoutes");
 const app = express();
 const eventRoutes = require("./src/routes/eventRoutes")
+const paymentRoutes = require("./src/routes/paymentRoutes")
 app.use(cors());
-app.use(express.json());
 app.use(cookieParser());
 app.use("/api/auth", authRoutes);
 app.use("/api/", categoryRoutes);
 app.use("/api/", eventRoutes)
+app.use("/api/payments", paymentRoutes);  
 
+app.use(express.json());
 app.get("/", (req, res) => {
   res.json({ message: "Event api is working" });
 });
