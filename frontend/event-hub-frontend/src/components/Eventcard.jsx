@@ -13,9 +13,12 @@ import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { useNavigate } from "react-router";
 import api from "../config/axios";
 
 export default function EventCard({ event, categories, onEventUpdated, onEditClick }) {
+  const navigate = useNavigate();
+  
   const handleDelete = async () => {
     if (!window.confirm("Are you sure you want to delete this event?")) return;
     try {
@@ -29,6 +32,25 @@ export default function EventCard({ event, categories, onEventUpdated, onEditCli
 
   const handleEditClick = () => {
     onEditClick?.(event);
+  };
+
+  const handleDetailClick = () => {
+    navigate(`/event/${event.id}`);
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "PUBLISHED":
+        return "success";
+      case "CANCELLED":
+        return "error";
+      case "COMPLETED":
+        return "info";
+      case "ARCHIVED":
+        return "warning";
+      default:
+        return "default";
+    }
   };
 
   return (
@@ -63,7 +85,7 @@ export default function EventCard({ event, categories, onEventUpdated, onEditCli
           <Chip
             label={event.status}
             size="small"
-            color={event.status === "published" ? "success" : "default"}
+            color={getStatusColor(event.status)}
           />
         </Stack>
 
@@ -107,9 +129,9 @@ export default function EventCard({ event, categories, onEventUpdated, onEditCli
             <IconButton size="small" color="error" onClick={handleDelete}>
               <DeleteIcon fontSize="small" />
             </IconButton>
-            <Button size="small" variant="contained">
-              Detay
-            </Button>
+<Button size="small" variant="contained" onClick={handleDetailClick}>
+               Detay
+             </Button>
           </Stack>
         </Box>
       </CardContent>

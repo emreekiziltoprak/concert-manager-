@@ -6,6 +6,9 @@ import  Header from './page/Header'
 import Categories from './page/Categories'
 import Users from './page/Users'
 import Events from './page/Events'
+import CheckoutPage from './page/CheckoutPage'
+import PaymentSuccessPage from './page/PaymentSuccessPage'
+import EventDetail from './page/EventDetail'
 import { BrowserRouter, Route, Routes } from 'react-router'
 import MainLayout from './layout/MainLayout'
 import AuthPage from './page/Login'
@@ -25,22 +28,25 @@ function App() {
     <AuthProvider>
     <BrowserRouter>
 
-    <Routes>
-    {/* PUBLIC */}
-    <Route path="/login" element={<AuthPage/>} />
-    
-    {/* PROTECTED AREA */}
-    <Route element={<ProtectedRoute />}>
-    <Route element={<MainLayout/>}>
-    
-    <Route path='/' element={<Events/>} />
-      <Route path="/events" element={<Events/>} />
-      <Route path='/users' element={<Users/>} />
-      <Route path='/categories' element={<Categories/>} />
-    </Route>
-    </Route>
+<Routes>
+     {/* PUBLIC */}
+     <Route path="/login" element={<AuthPage/>} />
+     <Route path="/checkout" element={<CheckoutPage/>} />
+     <Route path="/payment-success" element={<PaymentSuccessPage/>} />
+     
+     {/* PROTECTED AREA */}
+     <Route element={<ProtectedRoute />}>
+     <Route element={<MainLayout/>}>
+     
+      <Route path='/' element={<Events/>} />
+        <Route path="/events" element={<Events/>} />
+        <Route path="/event/:eventId" element={<EventDetail/>} />
+        <Route path='/users' element={<Users/>} />
+        <Route path='/categories' element={<Categories/>} />
+     </Route>
+     </Route>
 
-    </Routes>
+     </Routes>
 
     </BrowserRouter>
 </AuthProvider>

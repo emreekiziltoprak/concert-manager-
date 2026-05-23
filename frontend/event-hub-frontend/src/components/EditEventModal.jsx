@@ -26,13 +26,15 @@ const initialState = {
   latitude: "",
   longitude: "",
   capacity: "",
-  status: "draft",
+  status: "DRAFT",
 };
 
 const statusOptions = [
-  { label: "Draft", value: "draft" },
-  { label: "Published", value: "published" },
-  { label: "Cancelled", value: "cancelled" },
+  { label: "Draft", value: "DRAFT" },
+  { label: "Published", value: "PUBLISHED" },
+  { label: "Cancelled", value: "CANCELLED" },
+  { label: "Completed", value: "COMPLETED" },
+  { label: "Archived", value: "ARCHIVED" },
 ];
 
 export default function EditEventModal({ open, onClose, event, categories, onEventUpdated }) {
@@ -53,7 +55,7 @@ export default function EditEventModal({ open, onClose, event, categories, onEve
         latitude: event.latitude || "",
         longitude: event.longitude || "",
         capacity: event.capacity || "",
-        status: event.status || "draft",
+        status: event.status || "DRAFT",
       });
     }
   }, [event]);

@@ -4,7 +4,7 @@ const categoryController = require("../controllers/categoryController");
 
 /**
  * @swagger
- * /categories:
+ * /api/categories:
  *   post:
  *     summary: Create a new category
  *     tags: [Categories]
@@ -29,7 +29,18 @@ router.post("/categories", categoryController.addCategory);
 
 /**
  * @swagger
- * /categories:
+ * /api/categories:
+ *   get:
+ *     summary: Get all categories
+ *     tags: [Categories]
+ *     responses:
+ *       200:
+ *         description: List of categories
+ */
+
+/**
+ * @swagger
+ * /api/categories:
  *   get:
  *     summary: Get all categories
  *     tags: [Categories]
@@ -41,7 +52,7 @@ router.get("/categories",categoryController.getCategories);
 
 /**
  * @swagger
- * /categories:
+ * /api/categories:
  *   delete:
  *     summary: Delete a category
  *     tags: [Categories]
