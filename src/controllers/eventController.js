@@ -18,6 +18,15 @@ const getEvents = async (req, res) => {
     }
 }
 
+const getEventById = async (req, res) => {
+    try {
+        const event = await eventService.getEventById(req.params.id);
+        return res.status(200).json({event: event});
+    } catch (error) {
+        return res.status(400).send({error: error.message});
+    }
+}
+
 const updateEvent = async (req, res) => {
     try {
         const updatedEvent = await eventService.updateEvent(req.body, req.user);
@@ -36,4 +45,4 @@ const deleteEvent = async (req, res) => {
     }
 }
 
-module.exports = {addEvent, getEvents, updateEvent, deleteEvent};
+module.exports = {addEvent, getEvents, getEventById, updateEvent, deleteEvent};

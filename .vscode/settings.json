@@ -1,0 +1,5 @@
+{
+  "prisma.showPrismaFundamentalsTip": false,
+  "prisma.languageServer": true,
+  "prisma.schemaPath": "prisma/schema.prisma"
+}

@@ -1,13 +1,73 @@
 const prisma = require("../utils/prismaClient");
 
-const addEvent = async (event) => {
-    const eventResp = await prisma.event.create({data: event});
+const addEvent = async (eventData) => {
+    const {ticketTypes, ...rest} = eventData;
+
+    const eventResp = await prisma.event.create(
+        {data: {...rest, 
+                ticketTypes: {
+                    create: ticketTypes
+                },},
+                include: {
+                    ticketTypes: true
+                }
+        });
     return {message: "Event successfully created", eventResp};
 };
 
 const getEvents = async () => {
-    return await prisma.event.findMany();
-}
+    return await prisma.event.findMany({
+        include: {
+            ticketTypes: true
+        }
+    });
+};
+
+const getEventById = async (eventId) => {
+    const event = await prisma.event.findUnique({
+        where: {id: eventId},
+        include: {
+            ticketTypes: false
+        }
+    });
+
+    const ticketTypes = await prisma.ticketType.findMany({
+        where: {eventId: eventId}
+    });
+
+    let ticketTypesMod = [];
+
+    for (const ticketType of ticketTypes) {
+
+        //get pending and success orders, and sum their orderitem quantity
+         const aggregations = await prisma.orderItem.aggregate({
+            where: {
+                ticketTypeId: ticketType.id,
+                order: {
+                    status: { in: ["PENDING", "SUCCESS"]}
+                }
+            },  
+            _sum: {
+                quantity: true
+            }
+        });
+
+        const soldCount = aggregations._sum.quantity;
+     
+        ticketTypesMod.push({...ticketType, soldCount});
+
+    }
+
+      
+
+
+    
+    if (!event) {
+        throw new Error("Event not found");
+    }
+    
+    return {...event, ticketTypes: ticketTypesMod};
+};
 
 const updateEvent = async (event, user) => {
     const existingEvent = await prisma.event.findFirst({
@@ -28,7 +88,7 @@ const updateEvent = async (event, user) => {
     });
 
     return updatedEvent;
-}
+};
 
 const deleteEvent = async(eventId, user) =>{
     const existingEvent = await prisma.event.findFirst({where: {id: eventId, deletedAt: null}});
@@ -42,6 +102,6 @@ const deleteEvent = async(eventId, user) =>{
     });
 
     return deletedEvent;
-}
+};
 
-module.exports = {addEvent, getEvents, updateEvent, deleteEvent};
+module.exports = {addEvent, getEvents, getEventById, updateEvent, deleteEvent};
