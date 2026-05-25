@@ -7,20 +7,19 @@ const swaggerSpecs = require("./src/config/swagger");
 
 const authRoutes = require("./src/routes/authRoutes");
 const categoryRoutes = require("./src/routes/categoryRoutes");
+const eventRoutes = require("./src/routes/eventRoutes");
+const paymentRoutes = require("./src/routes/paymentRoutes");
+
 const app = express();
-const eventRoutes = require("./src/routes/eventRoutes")
-const paymentRoutes = require("./src/routes/paymentRoutes")
 
 app.use(cors());
 app.use(cookieParser());
-app.use("/api/payments", paymentRoutes);
-
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/", categoryRoutes);
-app.use("/api/", eventRoutes)
-app.use("/api/payments", paymentRoutes);  
+app.use("/api/", eventRoutes);
+app.use("/api/payments", paymentRoutes);
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 

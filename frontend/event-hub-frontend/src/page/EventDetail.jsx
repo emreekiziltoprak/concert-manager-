@@ -9,11 +9,13 @@ import {
   Container,
   Grid,
   Stack,
+  TextField,
   Typography,
 } from "@mui/material";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import { useNavigate, useParams } from "react-router";
+import { useCart } from "../context/cartContext";
 import api from "../config/axios";
 
 export default function EventDetail() {
@@ -21,6 +23,8 @@ export default function EventDetail() {
   const navigate = useNavigate();
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [quantities, setQuantities] = useState({});
+  const { addToCart } = useCart();
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -137,17 +141,75 @@ export default function EventDetail() {
                       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                         Kategori: {ticketType.category}
                       </Typography>
-                      <Typography variant="h5" color="primary">
+                      <Typography variant="h5" color="primary" sx={{ mb: 2 }}>
                         {ticketType.price} ₺
                       </Typography>
-                      <Typography variant="caption" color="text.secondary">
+                      <Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: 'block' }}>
                         {ticketType.totalCount} adet available
                       </Typography>
+                      <TextField
+                        type="number"
+                        size="small"
+                        label="Adet"
+                        value={quantities[ticketType.id] || 0}
+                        onChange={(e) => setQuantities(prev => ({
+                          ...prev,
+                          [ticketType.id]: Math.max(0, parseInt(e.target.value) || 0)
+                        }))}
+                        inputProps={{ min: 0, max: ticketType.totalCount }}
+                        sx={{ width: '100%' }}
+                      />
                     </CardContent>
                   </Card>
                 </Grid>
               ))}
             </Grid>
+          </Box>
+          
+          {/* ACTION BUTTONS */}
+          <Box sx={{ textAlign: "right", mb: 4 }}>
+            <Stack direction="row" spacing={2} justifyContent="flex-end">
+              <Button 
+                variant="outlined" 
+                size="large"
+                onClick={() => {
+                  Object.entries(quantities).forEach(([ticketTypeId, count]) => {
+                    if (count > 0) {
+                      addToCart({
+                        eventId: event.id,
+                        ticketTypeId,
+                        count,
+                        price: event.ticketTypes.find(t => t.id === ticketTypeId)?.price
+                      });
+                    }
+                  });
+                  alert("Sepete eklendi!");
+                }}
+              >
+                Sepete Ekle
+              </Button>
+              <Button 
+                variant="contained" 
+                size="large"
+                onClick={() => {
+                  const cartItems = Object.entries(quantities)
+                    .filter(([_, count]) => count > 0)
+                    .map(([ticketTypeId, count]) => ({
+                      ticketTypeId,
+                      count
+                    }));
+                  
+                  if (cartItems.length === 0) {
+                    alert("Lütfen en az bir bilet seçin");
+                    return;
+                  }
+                  
+                  navigate("/checkout", { state: { cartItems, eventId } });
+                }}
+              >
+                Ödemeye Geç
+              </Button>
+            </Stack>
           </Box>
           
           {/* BACK BUTTON */}

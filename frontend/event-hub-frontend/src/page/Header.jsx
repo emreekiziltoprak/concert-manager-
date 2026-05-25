@@ -5,11 +5,14 @@ import Toolbar from "@mui/material/Toolbar";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
+import Badge from "@mui/material/Badge";
 import { useAuth } from "../authContext/authcontext";
+import { useCart } from "../context/cartContext";
 
 export default function Header() {
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const { getCartItemCount } = useCart();
 
   const handleLogout = () => {
     logout();
@@ -40,6 +43,12 @@ export default function Header() {
 
           <Button color="inherit" component={Link} to="/categories">
             Categories
+          </Button>
+
+          <Button color="inherit" component={Link} to="/my-cart">
+            <Badge badgeContent={getCartItemCount()} color="secondary">
+              Sepetim
+            </Badge>
           </Button>
         </Box>
 

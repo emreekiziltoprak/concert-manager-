@@ -6,7 +6,7 @@ const checkout = async (req, res) => {
     try {
         const { eventId, cartItems } = req.body
 
-        const order = await paymentService.createOrder(req.body.user.id, eventId, cartItems)
+        const order = await paymentService.createOrder(req.user.userId, eventId, cartItems)
 
         const clientSecret = await paymentService.createPaymentIntent(order.id, order.totalAmount);
 
@@ -15,6 +15,7 @@ const checkout = async (req, res) => {
         })
 
     } catch (error) {
+        console.error(error.stack)
         res.status(400).json({ error: error.message })
     }
 }
