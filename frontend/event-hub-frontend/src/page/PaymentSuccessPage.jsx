@@ -11,11 +11,13 @@ import {
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
 import { useNavigate } from "react-router-dom";
+import { useCart } from "../context/cartContext";
 
 export default function PaymentSuccessPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [status, setStatus] = useState("loading");
+  const { clearCart } = useCart();
 
   useEffect(() => {
     const paymentIntent = searchParams.get("payment_intent");
@@ -25,12 +27,14 @@ export default function PaymentSuccessPage() {
 
     if (paymentIntent && paymentIntentClientSecret) {
       setStatus("success");
+      clearCart();
     } else if (searchParams.get("redirect_status") === "failed") {
       setStatus("failed");
     } else {
       setStatus("success");
+      clearCart();
     }
-  }, [searchParams]);
+  }, [searchParams, clearCart]);
 
   if (status === "loading") {
     return (

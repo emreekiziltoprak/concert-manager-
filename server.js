@@ -14,12 +14,13 @@ const app = express();
 
 app.use(cors());
 app.use(cookieParser());
+app.use("/api/payments/webhook", express.raw({ type: "application/json" }));
 app.use(express.json());
 
+app.use("/api/payments", paymentRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/", categoryRoutes);
 app.use("/api/", eventRoutes);
-app.use("/api/payments", paymentRoutes);
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 

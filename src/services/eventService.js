@@ -27,15 +27,46 @@ const getEventById = async (eventId) => {
     const event = await prisma.event.findUnique({
         where: {id: eventId},
         include: {
-            ticketTypes: true
+            ticketTypes: false
         }
     });
+
+    const ticketTypes = await prisma.ticketType.findMany({
+        where: {eventId: eventId}
+    });
+
+    let ticketTypesMod = [];
+
+    for (const ticketType of ticketTypes) {
+
+        //get pending and success orders, and sum their orderitem quantity
+         const aggregations = await prisma.orderItem.aggregate({
+            where: {
+                ticketTypeId: ticketType.id,
+                order: {
+                    status: { in: ["PENDING", "SUCCESS"]}
+                }
+            },  
+            _sum: {
+                quantity: true
+            }
+        });
+
+        const soldCount = aggregations._sum.quantity;
+     
+        ticketTypesMod.push({...ticketType, soldCount});
+
+    }
+
+      
+
+
     
     if (!event) {
         throw new Error("Event not found");
     }
     
-    return event;
+    return {...event, ticketTypes: ticketTypesMod};
 };
 
 const updateEvent = async (event, user) => {

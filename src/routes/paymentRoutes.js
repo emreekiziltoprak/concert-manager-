@@ -67,7 +67,7 @@ router.post("/checkout", authMiddleware, paymentController.checkout);
  *       200:
  *         description: Webhook processed
  */
-router.post("/webhook", express.raw({ type: 'application/json' }), paymentController.webhook);
+router.post("/webhook", paymentController.webhook);
 
 
 module.exports = router;

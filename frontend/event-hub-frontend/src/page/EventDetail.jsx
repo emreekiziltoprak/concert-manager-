@@ -145,7 +145,7 @@ export default function EventDetail() {
                         {ticketType.price} ₺
                       </Typography>
                       <Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: 'block' }}>
-                        {ticketType.totalCount} adet available
+                        {ticketType.totalCount - ticketType.soldCount} adet available
                       </Typography>
                       <TextField
                         type="number"
