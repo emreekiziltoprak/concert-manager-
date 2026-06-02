@@ -9,6 +9,7 @@ const authRoutes = require("./src/routes/authRoutes");
 const categoryRoutes = require("./src/routes/categoryRoutes");
 const eventRoutes = require("./src/routes/eventRoutes");
 const paymentRoutes = require("./src/routes/paymentRoutes");
+const { startOrderCronJobs } = require("./src/services/orderService");
 
 const app = express();
 

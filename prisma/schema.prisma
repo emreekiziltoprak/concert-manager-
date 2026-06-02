@@ -179,7 +179,8 @@ model Ticket {
   userId String
 
   isSold Boolean
-
+  isUsed Boolean @default(false)
+  
   ticketType TicketType @relation(fields: [ticketTypeId], references: [id])
   user User @relation(fields: [userId], references: [id])
   orderItem OrderItem @relation(fields: [orderItemId], references: [id])
