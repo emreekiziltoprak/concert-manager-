@@ -28,6 +28,8 @@ app.get("/", (req, res) => {
   res.json({ message: "Event api is working" });
 });
 
+startOrderCronJobs();
+
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
