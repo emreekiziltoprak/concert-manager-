@@ -21,7 +21,8 @@ const register = async ({email, password, fullName}) => {
     return {
         id: user.id, 
         email: user.email,
-        fullName: user.fullName
+        fullName: user.fullName,
+        role: user.role
     };
 
 
@@ -39,7 +40,7 @@ const login = async ({email, password}) => {
     if(!isValid) throw new Error("Email or password is wrong");
 
     const token = jwt.sign(
-        {userId: user.id, email: user.email},
+        {userId: user.id, role: user.role, email: user.email},
         process.env.JWT_SECRET,
         {expiresIn: "7d"}
 
@@ -48,7 +49,8 @@ const login = async ({email, password}) => {
     return { token, user: {
         id: user.id,
         email: user.email,
-        fullName: user.fullName
+        fullName: user.fullName,
+        role: user.role
     }}
 }
 
