@@ -10,6 +10,7 @@ const categoryRoutes = require("./src/routes/categoryRoutes");
 const eventRoutes = require("./src/routes/eventRoutes");
 const paymentRoutes = require("./src/routes/paymentRoutes");
 const { startOrderCronJobs } = require("./src/services/orderService");
+const { startOutboxWorker } = require("./src/jobs/outboxWorker");
 
 const app = express();
 
@@ -30,6 +31,8 @@ app.get("/", (req, res) => {
 });
 
 startOrderCronJobs();
+startOutboxWorker();
+
 
 const PORT = process.env.PORT || 3000;
 

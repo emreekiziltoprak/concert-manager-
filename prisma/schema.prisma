@@ -228,3 +228,13 @@ model OrderItem {
    
   @@map("order_items")
 }
+
+model OutboxEvent {
+  id        String   @id @default(uuid())
+  type      String   
+  payload   Json    
+  status    String   @default("PENDING") 
+  error     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

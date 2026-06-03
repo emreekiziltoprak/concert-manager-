@@ -34,7 +34,6 @@ const webhook = async (req, res) => {
     }
 
     try {
-        const event = req.body;
 
         if (event.type === 'payment_intent.succeeded') {
             const paymentIntent = event.data.object;
