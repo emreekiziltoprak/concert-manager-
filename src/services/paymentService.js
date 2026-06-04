@@ -70,7 +70,7 @@ const createOrder = async (userId, eventId, cartItems) => {
 const completePayment = async (orderId) => {
    const order = await prisma.order.findUnique(
         {where: {id: orderId},
-    include: {orderItems: true}
+        include: {orderItems: true, user: true}
     },
     );
 
@@ -93,7 +93,7 @@ const completePayment = async (orderId) => {
                     isSold: true,
                     soldDate: new Date()
                 })
-        }}
+            }}
 
         await tx.ticket.createMany({
             data: ticketsData
@@ -104,7 +104,20 @@ const completePayment = async (orderId) => {
             data: {status: "SUCCESS"}
         });
 
-    })
+        //TODO:: create workbox event and send email
+        await tx.outboxEvent.create({
+            data: {
+            type: "SEND_TICKET_EMAIL",
+            payload: {
+                userEmail: order.user.email,
+                fullName: order.user.fullName,
+                orderId: orderId
+            }
+        }})
+
+    });
+
+ 
 }
 
 const createPaymentIntent = async (orderId, amount) => {

@@ -12,6 +12,14 @@ const getMyTickets = async (req, res) => {
   }
 };
 
+/* const getOrderTickets = async (req,res) => {
+  try {
+    const tickets = await ticketService.getOrderTicketsEmail()
+  } catch (error) {
+    
+  }
+} */
+
 const scanTicket = async (req, res) => {
   try {
     const { ticketId } = req.body;
