@@ -1,4 +1,6 @@
 const paymentService = require("../services/paymentService");
+const ticketService = require("../services/ticketService");
+
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 const stripe = require("../utils/stripeClient");
 //create order, orderitem and stripe secret for payment
@@ -41,10 +43,17 @@ const webhook = async (req, res) => {
 
             //create tickets
             await paymentService.completePayment(orderId)
+
+            //TODO:: 
         }
         //make stripe in contact
         res.status(200).json({ received: true });
     } catch (error) {
+        
+        if (error.message === "this order is processed") {
+        return res.status(200).json({ received: true, note: "Already processed" });
+        }
+
         res.status(400).send("Webhook Error")
     }
 }

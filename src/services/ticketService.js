@@ -41,9 +41,30 @@ const validateUserTicket = async (ticketId) => {
         where: {id : ticketId},
         data: {isUsed: true}
     });
+
+    return updatedTicket;
 };
+
+const getOrderTicketsEmail = async (orderId) => {
+    const order = await prisma.order.findUnique({
+        where: {id: orderId},
+        include: {
+            user: true,
+            event: true,
+            orderItem: {
+                include: {
+                    tickets: true,
+                    ticketType: true
+                }
+            }
+        }
+    });
+
+    return order;
+}
 
 module.exports = {
     getUserTicketsWithQrCode,
     validateUserTicket,
+    getOrderTicketsEmail
 };

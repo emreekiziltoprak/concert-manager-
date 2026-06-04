@@ -1,0 +1,59 @@
+<div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee;">
+    <h2>Your Tickets Are Ready!</h2>
+
+    <p>Dear <strong><%= fullName %></strong>,</p>
+
+    <p>Event: <strong><%= event.title %></strong></p>
+
+    <p>
+        Date:
+        <%= new Date(event.date).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        }) %>
+    </p>
+
+    <hr/>
+
+    <h3>Your Ticket Details</h3>
+
+    <% orderItems.forEach(function(item) { %>
+        <div style="margin-bottom: 15px; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #007bff;">
+            
+            <p style="margin: 0 0 10px 0;">
+                <strong>Ticket Type:</strong> <%= item.ticketType.name %>
+                <span style="color: gray;">
+                    (Quantity: <%= item.tickets.length %>)
+                </span>
+            </p>
+
+            <p style="margin: 0; font-size: 14px;">
+                <strong>Ticket IDs:</strong>
+            </p>
+
+            <ul style="margin-top: 5px; margin-bottom: 0;">
+                <% item.tickets.forEach(function(ticket) { %>
+                    <li style="font-family: monospace; color: #d63384;">
+                        <%= ticket.id %>
+                    </li>
+                <% }) %>
+            </ul>
+        </div>
+    <% }) %>
+
+    <p style="margin-top: 20px;">
+        Your tickets have been successfully registered in our system. Please present them at the entrance.
+    </p>
+
+    <p>
+        📍 Location:
+        <a href="https://maps.google.com/?q=<%= encodeURIComponent(event.location) %>">
+            Open in Google Maps
+        </a>
+    </p>
+
+    <p>
+        We look forward to seeing you at the event!
+    </p>
+</div>
