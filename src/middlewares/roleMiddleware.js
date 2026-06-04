@@ -1,15 +1,12 @@
-const checkRole = (allowedRoles) => {
-  return (req, res, next) => {
-    if (!req.user || !req.user.role) {
-      return res.status(403).json({ message: "Access is denied, role information cant be obtained." });
-    }
-
-    if (!allowedRoles.includes(req.user.role)) {
-      return res.status(403).json({ message: "Access is denied, you dont have permission to perform this action." });
-    }
-
-    next(); 
-  };
+const authorizeRoles = (...allowedRoles) => {
+    return (req, res, next) => {
+        if (!req.user || !allowedRoles.includes(req.user.role)) {
+            return res.status(403).json({ 
+                error: "Access denied. You do not have the required global permissions for this action." 
+            });
+        }
+        next();
+    };
 };
 
-module.exports = checkRole;
+module.exports = authorizeRoles;
