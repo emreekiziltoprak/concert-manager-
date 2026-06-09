@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "server": "nodemon server.js", 
-    "stripe": "stripe listen --forward-to http://localhost:3000/api/webhook",
+    "stripe": "stripe listen --forward-to http://localhost:3000/api/payments/webhook",
     "dev": "concurrently \"nodemon server.js\" \"npm run stripe\"" 
    },
   "keywords": [],

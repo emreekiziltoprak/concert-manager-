@@ -32,6 +32,7 @@ const webhook = async (req, res) => {
     try {
     event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);    
     } catch (error) {
+        console.error("STRIPE İMZA DOĞRULAMA HATASI:", error.message); // <--- Bunu ekleyin
         return res.status(400).send(`Webhook Error: ${error.message}`);
     }
 

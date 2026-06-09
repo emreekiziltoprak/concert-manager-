@@ -50,7 +50,7 @@ const getOrderTicketsEmail = async (orderId) => {
         include: {
             user: true,
             event: true,
-            orderItem: {
+            orderItems: {
                 include: {
                     tickets: true,
                     ticketType: true
