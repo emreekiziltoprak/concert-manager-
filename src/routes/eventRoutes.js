@@ -1,8 +1,18 @@
+
 const express = require("express");
 const router = express.Router();
+
 const eventController = require("../controllers/eventController");
 const authMiddleware = require("../middlewares/authMiddleware");
+const { authorizeRoles } = require("../middlewares/roleMiddleware");
+const { authorizeEventRole } = require("../middlewares/eventRoleMiddleware");
 
+/**
+ * @swagger
+ * tags:
+ *   name: Events
+ *   description: Event management endpoints
+ */
 
 /**
  * @swagger
@@ -18,11 +28,11 @@ const authMiddleware = require("../middlewares/authMiddleware");
  *       401:
  *         description: Unauthorized
  */
-router.get("/events", authMiddleware, eventController.getEvents);
+router.get("/", authMiddleware, eventController.getEvents);
 
 /**
  * @swagger
- * /api/events/{id}:
+ * /api/events/{eventId}:
  *   get:
  *     summary: Get event by ID
  *     tags: [Events]
@@ -30,11 +40,11 @@ router.get("/events", authMiddleware, eventController.getEvents);
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: eventId
+ *         required: true
  *         schema:
  *           type: string
- *         required: true
- *         description: Event ID
+ *         description: Event ID (UUID)
  *     responses:
  *       200:
  *         description: Event found
@@ -43,7 +53,7 @@ router.get("/events", authMiddleware, eventController.getEvents);
  *       404:
  *         description: Event not found
  */
-router.get("/events/:id", authMiddleware, eventController.getEventById);
+router.get("/:eventId", authMiddleware, eventController.getEventById);
 
 /**
  * @swagger
@@ -67,10 +77,13 @@ router.get("/events/:id", authMiddleware, eventController.getEventById);
  *             properties:
  *               title:
  *                 type: string
+ *                 example: Tech Conference 2026
  *               slug:
  *                 type: string
+ *                 example: tech-conference-2026
  *               description:
  *                 type: string
+ *                 example: Annual technology conference
  *               startDate:
  *                 type: string
  *                 format: date-time
@@ -79,27 +92,45 @@ router.get("/events/:id", authMiddleware, eventController.getEventById);
  *                 format: date-time
  *               capacity:
  *                 type: integer
+ *                 example: 500
  *               status:
  *                 type: string
- *                 enum: [DRAFT, PUBLISHED, CANCELLED, COMPLETED, ARCHIVED]
+ *                 enum:
+ *                   - DRAFT
+ *                   - PUBLISHED
+ *                   - CANCELLED
+ *                   - COMPLETED
+ *                   - ARCHIVED
  *     responses:
  *       201:
  *         description: Event created successfully
- *       401:
- *         description: Unauthorized
  *       400:
  *         description: Bad request
+ *       401:
+ *         description: Unauthorized
  */
-router.post("/events",  authMiddleware, eventController.addEvent);
+router.post(
+  "/",
+  authMiddleware,
+  authorizeRoles("ORGANISER", "ADMIN", "SUPER_ADMIN"),
+  eventController.addEvent
+);
 
 /**
  * @swagger
- * /events:
+ * /api/events/{eventId}:
  *   put:
  *     summary: Update an event
  *     tags: [Events]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: eventId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Event ID to update
  *     requestBody:
  *       required: true
  *       content:
@@ -107,8 +138,6 @@ router.post("/events",  authMiddleware, eventController.addEvent);
  *           schema:
  *             type: object
  *             properties:
- *               id:
- *                 type: integer
  *               title:
  *                 type: string
  *               slug:
@@ -117,43 +146,63 @@ router.post("/events",  authMiddleware, eventController.addEvent);
  *                 type: string
  *               status:
  *                 type: string
- *                 enum: [DRAFT, PUBLISHED, CANCELLED, COMPLETED, ARCHIVED]
+ *                 enum:
+ *                   - DRAFT
+ *                   - PUBLISHED
+ *                   - CANCELLED
+ *                   - COMPLETED
+ *                   - ARCHIVED
  *     responses:
  *       200:
  *         description: Event updated successfully
- *       401:
- *         description: Unauthorized
  *       400:
  *         description: Bad request
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Event not found
  */
-router.put("/events", authMiddleware, eventController.updateEvent);
+router.put(
+  "/:eventId",
+  authMiddleware,
+  authorizeEventRole(["OWNER", "CO_ORGANISER"]),
+  eventController.updateEvent
+);
 
 /**
  * @swagger
- * /events:
+ * /api/events/{eventId}:
  *   delete:
  *     summary: Delete an event
  *     tags: [Events]
  *     security:
  *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - eventId
- *             properties:
- *               eventId:
- *                 type: integer
+ *     parameters:
+ *       - in: path
+ *         name: eventId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The UUID of the event to delete
  *     responses:
  *       200:
  *         description: Event deleted successfully
- *       401:
- *         description: Unauthorized
  *       400:
  *         description: Bad request
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Event not found
  */
-router.delete("/events",authMiddleware, eventController.deleteEvent);
+router.delete(
+  "/:eventId",
+  authMiddleware,
+  authorizeEventRole(["OWNER"]),
+  eventController.deleteEvent
+);
+
 module.exports = router;

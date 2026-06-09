@@ -6,6 +6,6 @@ const { authorizeRoles } = require('../middlewares/roleMiddleware');
 
 router.get('/my-tickets', authMiddleware, ticketController.getMyTickets);
 
-router.post('/scan', authMiddleware, authorizeRoles(['ORGANIZER', 'ADMIN']), ticketController.scanTicket);
+router.post('/scan', authMiddleware, authorizeRoles('ORGANIZER', 'ADMIN'), ticketController.scanTicket);
 
 module.exports = router;

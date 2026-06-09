@@ -4,10 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node src/server.js",
-    "server": "nodemon src/server.js", 
+    "start": "node server.js",
+    "server": "nodemon server.js", 
     "stripe": "stripe listen --forward-to http://localhost:3000/api/webhook",
-    "dev": "concurrently \"nodemon src/server.js\" \"npm run stripe\"" 
+    "dev": "concurrently \"nodemon server.js\" \"npm run stripe\"" 
    },
   "keywords": [],
   "author": "",
