@@ -20,7 +20,7 @@ const getEvents = async (req, res) => {
 
 const getEventById = async (req, res) => {
     try {
-        const event = await eventService.getEventById(req.params.id);
+        const event = await eventService.getEventById(req.params.eventId);
         return res.status(200).json({event: event});
     } catch (error) {
         return res.status(400).send({error: error.message});

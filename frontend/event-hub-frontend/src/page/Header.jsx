@@ -41,6 +41,10 @@ export default function Header() {
             Users
           </Button>
 
+          <Button color="inherit" component={Link} to="/profile">
+            Profile
+          </Button>
+
           <Button color="inherit" component={Link} to="/categories">
             Categories
           </Button>
