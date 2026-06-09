@@ -9,6 +9,7 @@ const authRoutes = require("./src/routes/authRoutes");
 const categoryRoutes = require("./src/routes/categoryRoutes");
 const eventRoutes = require("./src/routes/eventRoutes");
 const paymentRoutes = require("./src/routes/paymentRoutes");
+const userRoutes = require("./src/routes/userRoutes");
 const { startOrderCronJobs } = require("./src/services/orderService");
 const { startOutboxWorker } = require("./src/jobs/outboxWorker");
 
@@ -21,8 +22,9 @@ app.use(express.json());
 
 app.use("/api/payments", paymentRoutes);
 app.use("/api/auth", authRoutes);
-app.use("/api/", categoryRoutes);
-app.use("/api/", eventRoutes);
+app.use("/api/categories", categoryRoutes);
+app.use("/api/events", eventRoutes);
+app.use("/api/users",userRoutes);
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 
