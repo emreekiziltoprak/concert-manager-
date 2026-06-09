@@ -35,11 +35,8 @@ enum EventStatus {
 enum EventRoleType {
   OWNER
   CO_ORGANISER
-  SPEAKER
   MODERATOR
-  VOLUNTEER
   SPONSOR
-  ATTENDEE
 }
 
 enum OrderStatus {
