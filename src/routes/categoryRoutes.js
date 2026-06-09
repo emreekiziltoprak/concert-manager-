@@ -1,6 +1,16 @@
-const express = require("express")
-const router = express.Router()
+const express = require("express");
+const router = express.Router();
+
 const categoryController = require("../controllers/categoryController");
+const authMiddleware = require("../middlewares/authMiddleware");
+const { authorizeRoles } = require('../middlewares/roleMiddleware');
+
+/**
+ * @swagger
+ * tags:
+ *   name: Categories
+ *   description: Category management endpoints
+ */
 
 /**
  * @swagger
@@ -8,6 +18,8 @@ const categoryController = require("../controllers/categoryController");
  *   post:
  *     summary: Create a new category
  *     tags: [Categories]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -19,13 +31,23 @@ const categoryController = require("../controllers/categoryController");
  *             properties:
  *               name:
  *                 type: string
+ *                 example: Technology
  *     responses:
  *       201:
  *         description: Category created successfully
  *       400:
  *         description: Bad request
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
  */
-router.post("/categories", categoryController.addCategory);
+router.post(
+  "/",
+  authMiddleware,
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
+  categoryController.addCategory
+);
 
 /**
  * @swagger
@@ -37,42 +59,38 @@ router.post("/categories", categoryController.addCategory);
  *       200:
  *         description: List of categories
  */
+router.get("/", categoryController.getCategories);
 
 /**
  * @swagger
- * /api/categories:
- *   get:
- *     summary: Get all categories
- *     tags: [Categories]
- *     responses:
- *       200:
- *         description: List of categories
- */
-router.get("/categories",categoryController.getCategories);
-
-/**
- * @swagger
- * /api/categories:
+ * /api/categories/{categoryId}:
  *   delete:
  *     summary: Delete a category
  *     tags: [Categories]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - id
- *             properties:
- *               id:
- *                 type: string
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: categoryId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The UUID of the category to delete
  *     responses:
  *       200:
  *         description: Category deleted successfully
  *       400:
  *         description: Bad request
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
  */
-router.delete("/categories",categoryController.deleteCategory);
+router.delete(
+  "/:categoryId",
+  authMiddleware,
+  authorizeRoles("ADMIN", "SUPER_ADMIN"),
+  categoryController.deleteCategory
+);
 
 module.exports = router;
