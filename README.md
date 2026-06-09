@@ -1,13 +1,8 @@
 # Event Hub - Concert Management System
 
 A full-stack concert/event management application built with Node.js/Express backend and React/Vite frontend.
-## 🗄️ Database Architecture (ERD)
 
-The system is built on a robust PostgreSQL relational database managed by Prisma ORM. Below is the simplified Entity-Relationship Diagram:
-
-## 🗄️ Database Architecture (ERD)
-
-The system is built on a highly relational PostgreSQL database managed by Prisma ORM. It includes robust concurrency management, role-based access control, and a transactional outbox pattern for distributed tasks.
+##  Database Architecture (ERD)
 
 ```mermaid
 erDiagram
