@@ -98,7 +98,7 @@ erDiagram
     
     %% Actual Ticket Generation Relations
     USER ||--o{ TICKET : "owns"
-    TICKET_TYPE ||--o{ TICKET : "is_typed_as"
+    TICKET_TYPE ||--o{ ORDER_ITEM : "defines_pricing"
     ORDER_ITEM ||--o{ TICKET : "generates_physical_ticket"
 
 ## Features
