@@ -100,7 +100,7 @@ erDiagram
     USER ||--o{ TICKET : "owns"
     TICKET_TYPE ||--o{ ORDER_ITEM : "defines_pricing"
     ORDER_ITEM ||--o{ TICKET : "generates_physical_ticket"
-
+```
 ## Features
 
 -  Event creation and management
@@ -113,7 +113,6 @@ erDiagram
 
 ## Project Structure
 
-```
 concert-manager/
 ├── .env                 # Environment variables
 ├── package.json         # Backend dependencies and scripts
