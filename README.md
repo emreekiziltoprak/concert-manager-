@@ -1,6 +1,105 @@
 # Event Hub - Concert Management System
 
 A full-stack concert/event management application built with Node.js/Express backend and React/Vite frontend.
+## 🗄️ Database Architecture (ERD)
+
+The system is built on a robust PostgreSQL relational database managed by Prisma ORM. Below is the simplified Entity-Relationship Diagram:
+
+## 🗄️ Database Architecture (ERD)
+
+The system is built on a highly relational PostgreSQL database managed by Prisma ORM. It includes robust concurrency management, role-based access control, and a transactional outbox pattern for distributed tasks.
+
+```mermaid
+erDiagram
+    USER {
+        String id PK
+        String email UK
+        String fullName
+        UserRole role
+        Boolean isActive
+        DateTime createdAt
+    }
+    EVENT {
+        String id PK
+        String title
+        String slug UK
+        DateTime startDate
+        DateTime endDate
+        Int capacity
+        EventStatus status
+        Float price
+    }
+    EVENT_ROLE {
+        String id PK
+        EventRoleType role
+        DateTime assignedAt
+    }
+    CATEGORY {
+        String id PK
+        String name UK
+        String slug UK
+    }
+    EVENT_REGISTRATION {
+        String id PK
+        String status
+        DateTime registeredAt
+    }
+    TICKET_TYPE {
+        String id PK
+        String name
+        Decimal price
+        Int totalCount
+        TicketCategory category
+    }
+    TICKET {
+        String id PK
+        Boolean isSold
+        Boolean isUsed
+        DateTime soldDate
+    }
+    ORDER {
+        String id PK
+        Decimal totalAmount
+        OrderStatus status
+        DateTime createdAt
+    }
+    ORDER_ITEM {
+        String id PK
+        Int quantity
+        Decimal unitPrice
+        Decimal totalPrice
+    }
+    OUTBOX_EVENT {
+        String id PK
+        String type
+        String status
+        Json payload
+    }
+
+    %% Core Event Management Relations
+    USER ||--o{ EVENT : "organizes"
+    CATEGORY ||--o{ EVENT : "categorizes"
+    
+    %% Role & Access Management Relations
+    USER ||--o{ EVENT_ROLE : "acts_as"
+    USER ||--o{ EVENT_ROLE : "assigned_by"
+    EVENT ||--o{ EVENT_ROLE : "includes"
+    
+    %% Registration Relations
+    USER ||--o{ EVENT_REGISTRATION : "registers"
+    EVENT ||--o{ EVENT_REGISTRATION : "has_registrations"
+    
+    %% Ticket Inventory & Order Relations
+    EVENT ||--o{ TICKET_TYPE : "provides"
+    EVENT ||--o{ ORDER : "receives"
+    USER ||--o{ ORDER : "places"
+    ORDER ||--o{ ORDER_ITEM : "contains"
+    TICKET_TYPE ||--o{ ORDER_ITEM : "defines_pricing"
+    
+    %% Actual Ticket Generation Relations
+    USER ||--o{ TICKET : "owns"
+    TICKET_TYPE ||--o{ TICKET : "is_typed_as"
+    ORDER_ITEM ||--o{ TICKET : "generates_physical_ticket"
 
 ## Features
 
