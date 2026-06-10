@@ -108,6 +108,7 @@ erDiagram
 
 ## Project Structure
 
+```text
 concert-manager/
 ├── .env                 # Environment variables
 ├── package.json         # Backend dependencies and scripts
