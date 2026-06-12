@@ -193,6 +193,7 @@ model Order {
   eventId String
   totalAmount Decimal @db.Decimal(10, 2)
   
+  stripePaymentIntentId String? @unique
 
   status OrderStatus @default(PENDING) 
   
