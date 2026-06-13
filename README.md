@@ -108,121 +108,56 @@ erDiagram
 
 ## Project Structure
 
-```text
-concert-manager/
-├── .env                 # Environment variables
-├── package.json         # Backend dependencies and scripts
-├── prisma/              # Prisma schema and migrations
-├── src/                 # Backend source code
-│   ├── config/          # Configuration files (Swagger, etc.)
-│   ├── controllers/     # Request handlers
-│   ├── middlewares/     # Custom middleware
-│   ├── routes/          # API route definitions
-│   ├── services/        # Business logic
-│   └── utils/           # Utility functions
-├── server.js            # Backend entry point
-└── frontend/            # Frontend application
+```
+concert-manager/                 # (Orchestra project root)
+├── docker-compose.yml           # Central command to start the whole system
+├── .gitignore
+└── README.md                    # Updated documentation
+
+├── backend/                     # API (fully independent service)
+│   ├── src/                     # Source code
+│   ├── prisma/                 # Database schema & migrations
+│   ├── package.json            # Backend dependencies
+│   ├── server.js               # Entry point
+│   ├── Dockerfile              # Backend build instructions
+│   ├── .dockerignore           # Files excluded from Docker context
+│   └── .env                    # Backend environment variables
+│
+└── frontend/                   # UI (fully independent service)
     └── event-hub-frontend/
-        ├── public/      # Static assets
-        ├── src/         # React components and logic
-        ├── package.json # Frontend dependencies
-        └── vite.config.js # Vite configuration
+        ├── src/                # Frontend source code
+        ├── public/             # Static assets
+        ├── package.json       # Frontend dependencies
+        ├── vite.config.js     # Vite configuration
+        ├── Dockerfile         # Frontend build instructions
+        ├── .dockerignore      # Files excluded from Docker context
+        └── .env.development   # Frontend development environment variables
 ```
 
-## Technology Stack
+## Common Docker Commands
 
-### Backend
-- **Node.js** with **Express.js**
-- **Prisma** ORM with **PostgreSQL**
-- **JWT** for authentication
-- **Stripe** for payment processing
-- **Swagger** for API documentation
-- **dotenv** for environment configuration
-- **cors**, **cookie-parser**, **express-validator** for middleware
+| Command | Description |
+|----------|-------------|
+| `docker-compose up --build` | Builds and starts all services. |
+| `docker-compose down` | Stops and removes all containers. |
+| `docker-compose down -v` | Stops the system and removes all volumes, including the database data. |
+| `docker-compose logs -f backend` | Streams backend logs in real time. |
+| `npx prisma migrate dev` | Applies database schema changes and generates a new migration. |
 
-### Frontend
-- **React** with **Vite**
-- **React Router** for navigation
-- **Axios** for HTTP requests
-- **Stripe JS** for payment integration
-- **ESLint** for code quality
 
-## Setup and Installation
+## Service Address
+Frontend (UI)	http://localhost:5173
+Backend (API)	http://localhost:3000
+Database (PostgreSQL)	localhost:5433
 
-### Prerequisites
-- Node.js (v16+)
-- Yarn package manager
-- PostgreSQL database
-
-### Backend Setup
-
-1. Install backend dependencies:
-   ```bash
-   yarn install
-   ```
-
-2. Set up environment variables:
-   ```bash
-   cp .env.example .env  # If .env.example exists
-   # Or create .env with:
-   # DATABASE_URL="postgresql://username:password@localhost:5432/database_name"
-   # JWT_SECRET="your_jwt_secret_here"
-   # STRIPE_SECRET_KEY="your_stripe_secret_key"
-   # STRIPE_WEBHOOK_SECRET="your_stripe_webhook_secret"
-   ```
-
-3. Run database migrations:
-   ```bash
-   npx prisma migrate dev
-   ```
-
-4. Start the development server:
-   ```bash
-   yarn dev
-   ```
-   The API will be available at `http://localhost:3000`
-
-### Frontend Setup
-
-1. Navigate to the frontend directory:
-   ```bash
-   cd frontend/event-hub-frontend
-   ```
-
-2. Install frontend dependencies:
-   ```bash
-   yarn install
-   ```
-
-3. Set up frontend environment variables:
-   ```bash
-   cp .env.example .env.development  # If .env.example exists
-   # Or create .env.development with:
-   # VITE_API_URL="http://localhost:3000/api"
-   # VITE_STRIPE_PUBLISHABLE_KEY="your_stripe_publishable_key"
-   ```
-
-4. Start the frontend development server:
-   ```bash
-   yarn dev
-   ```
-   The application will be available at `http://localhost:5173`
+## Accessing the Application
+docker-compose down -v
+docker-compose up --build
 
 ## API Documentation
 
 Once the backend is running, visit `http://localhost:3000/api-docs` to view the interactive Swagger API documentation.
 
-## Available Scripts
-
-### Backend
-- `yarn dev` - Start development server with nodemon
-- `yarn start` - Start production server
-- `yarn test` - Run tests (currently not configured)
-
-### Frontend
-- `yarn dev` - Start development server
-- `yarn build` - Build for production
-- `yarn preview` - Preview production build
 
 ## Environment Variables
 

@@ -9,6 +9,9 @@
     "stripe": "stripe listen --forward-to http://localhost:3000/api/payments/webhook",
     "dev": "concurrently \"nodemon server.js\" \"npm run stripe\"" 
    },
+   "prisma": {
+    "seed": "node prisma/seed.js"
+    },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -16,8 +19,6 @@
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
-    "@stripe/react-stripe-js": "^6.4.0",
-    "@stripe/stripe-js": "^9.6.0",
     "axios": "^1.16.1",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",

@@ -1,0 +1,44 @@
+services:
+  # 1. DATABASE (POSTGRESQL)
+  postgres:
+    image: postgres:15-alpine
+    container_name: concert_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # 2. BACKEND (NODE.JS + PRISMA)
+  backend:
+    build: 
+      context: ./backend
+    container_name: concert_backend
+    restart: always
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - postgres 
+
+  # 3. FRONTEND (NGINX + REACT/VITE)
+  frontend:
+    build: 
+      context: ./frontend 
+    container_name: concert_frontend
+    restart: always
+    ports:
+      - "5173:5173" 
+    env_file:
+      - ./frontend/.env.development
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules # Lokaldeki node_modules ile çakışmayı önler
+
+volumes:
+  postgres_data:

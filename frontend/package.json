@@ -12,6 +12,9 @@
   "dependencies": {
     "@material-ui/icons": "^4.11.3",
     "@mui/icons-material": "^9.0.1",
+    "@stripe/react-stripe-js": "^6.4.0",
+    "@stripe/stripe-js": "^9.6.0",
+    "axios": "^1.17.0",
     "qrcode.react": "^4.2.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
