@@ -1,8 +1,8 @@
 # Event Hub - Concert Management System
 
-A full-stack concert/event management application built with Node.js/Express backend and React/Vite frontend.
+A full-stack concert/event management application built with Node.js/Express backend, React/Vite frontend, PostgreSQL, Prisma ORM, and Docker.
 
-##  Database Architecture (ERD)
+## Database Architecture (ERD)
 
 ```mermaid
 erDiagram
@@ -96,108 +96,301 @@ erDiagram
     TICKET_TYPE ||--o{ ORDER_ITEM : "defines_pricing"
     ORDER_ITEM ||--o{ TICKET : "generates_physical_ticket"
 ```
+
 ## Features
 
--  Event creation and management
--  Category organization for events
--  User authentication (JWT-based)
--  Payment processing with Stripe
--  Interactive API documentation (Swagger)
--  Modern React frontend with Vite
--  PostgreSQL database with Prisma ORM
+- Event creation and management
+- Category organization for events
+- User authentication with JWT
+- Payment processing with Stripe
+- Interactive API documentation with Swagger
+- Modern React frontend with Vite
+- PostgreSQL database with Prisma ORM
+- Dockerized development and production environments
 
 ## Project Structure
 
 ```
-concert-manager/                 # (Orchestra project root)
-├── docker-compose.yml           # Central command to start the whole system
-├── .gitignore
-└── README.md                    # Updated documentation
-
-├── backend/                     # API (fully independent service)
-│   ├── src/                     # Source code
-│   ├── prisma/                 # Database schema & migrations
-│   ├── package.json            # Backend dependencies
-│   ├── server.js               # Entry point
-│   ├── Dockerfile              # Backend build instructions
-│   ├── .dockerignore           # Files excluded from Docker context
-│   └── .env                    # Backend environment variables
+concert-manager/
+├── docker-compose.yml          # Default development compose file
+├── docker-compose.dev.yml      # Development compose file
+├── docker-compose.prod.yml     # Production compose file
+├── Makefile                    # Common Docker, Prisma, and log commands
+├── .env                        # Root environment variables used by Compose
+├── README.md
 │
-└── frontend/                   # UI (fully independent service)
-    └── event-hub-frontend/
-        ├── src/                # Frontend source code
-        ├── public/             # Static assets
-        ├── package.json       # Frontend dependencies
-        ├── vite.config.js     # Vite configuration
-        ├── Dockerfile         # Frontend build instructions
-        ├── .dockerignore      # Files excluded from Docker context
-        └── .env.development   # Frontend development environment variables
+├── backend/
+│   ├── Dockerfile              # Default backend Dockerfile
+│   ├── Dockerfile.dev          # Development backend image
+│   ├── Dockerfile.prod         # Production backend image
+│   ├── prisma.config.ts        # Prisma configuration
+│   ├── prisma/
+│   │   ├── schema.prisma
+│   │   ├── migrations/
+│   │   └── seed.js
+│   ├── src/
+│   ├── package.json
+│   ├── server.js
+│   ├── .env                    # Backend runtime environment variables
+│   └── .dockerignore
+│
+└── frontend/
+    ├── Dockerfile              # Default frontend Dockerfile
+    ├── Dockerfile.dev          # Development frontend image
+    ├── Dockerfile.prod         # Production frontend image
+    ├── src/
+    ├── public/
+    ├── package.json
+    ├── vite.config.js
+    ├── nginx.conf
+    ├── .env.development        # Frontend development environment variables
+    └── .dockerignore
 ```
 
-## Common Docker Commands
+## Environment Separation
 
-| Command | Description |
-|----------|-------------|
-| `docker-compose up --build` | Builds and starts all services. |
-| `docker-compose down` | Stops and removes all containers. |
-| `docker-compose down -v` | Stops the system and removes all volumes, including the database data. |
-| `docker-compose logs -f backend` | Streams backend logs in real time. |
-| `npx prisma migrate dev` | Applies database schema changes and generates a new migration. |
+The project has separate Docker and Compose configurations for development and production.
 
+| Environment | Compose File | Frontend Dockerfile | Backend Dockerfile | Purpose |
+|-------------|--------------|---------------------|--------------------|---------|
+| Development | `docker-compose.dev.yml` | `frontend/Dockerfile.dev` | `backend/Dockerfile.dev` | Hot reload, mounted source code, local debugging |
+| Production | `docker-compose.prod.yml` | `frontend/Dockerfile.prod` | `backend/Dockerfile.prod` | Optimized static build, Nginx, no source mounts |
 
-## Service Address
-Frontend (UI)	http://localhost:5173
-Backend (API)	http://localhost:3000
-Database (PostgreSQL)	localhost:5433
+`docker-compose.yml` points to the development setup by default.
 
-## Accessing the Application
-docker-compose down -v
-docker-compose up --build
+## Makefile Commands
+
+The `Makefile` is the recommended way to manage the project.
+
+### Start and stop
+
+```bash
+make up
+make dev-up
+make dev-down
+```
+
+Production:
+
+```bash
+make prod
+make prod-up
+make prod-down
+```
+
+Restart:
+
+```bash
+make restart
+make prod-restart
+```
+
+Clean local containers, networks, volumes, and Docker builder cache:
+
+```bash
+make clean
+```
+
+### Prisma and database
+
+Create and apply a development migration:
+
+```bash
+make migrate-dev
+```
+
+Apply production migrations manually:
+
+```bash
+make migrate-prod
+```
+
+Seed the database:
+
+```bash
+make seed
+```
+
+Open the PostgreSQL shell:
+
+```bash
+make db-shell
+```
+
+### Logs and shell access
+
+```bash
+make logs-be
+make logs-fe
+make logs
+make sh-be
+make sh-fe
+make ps
+```
+
+## Development Setup
+
+Start the development environment:
+
+```bash
+make dev-up
+```
+
+If this is the first run, or if the Prisma schema changed, run:
+
+```bash
+make migrate-dev
+make seed
+```
+
+Development services:
+
+| Service | Address |
+|---------|---------|
+| Frontend | http://localhost:5173 |
+| Backend API | http://localhost:3000 |
+| PostgreSQL | `localhost:5433` |
+| Swagger | http://localhost:3000/api-docs |
+
+The development setup mounts `./backend` and `./frontend` into their containers, so source code changes are reflected without rebuilding the image.
+
+## Production Setup
+
+The production setup builds optimized images:
+
+- Backend runs Prisma migrations and seed automatically before starting the API.
+- Frontend is built with Vite and served through Nginx.
+- PostgreSQL data is stored in the `postgres_data` Docker volume.
+- The database port is not exposed to the host in production compose.
+
+Before building production, set frontend public environment variables in your shell or root `.env` file:
+
+```bash
+VITE_API_URL=https://api.your-domain.com
+VITE_STRIPE_PUBLISHABLE_KEY=pk_live_or_test_key_here
+```
+
+Start production:
+
+```bash
+make prod-up
+```
+
+Production services:
+
+| Service | Address |
+|---------|---------|
+| Frontend | http://localhost |
+| Backend API | http://localhost:3000 |
+| PostgreSQL | Docker volume only, not exposed to host |
+
+To force a clean production rebuild:
+
+```bash
+make prod-restart
+```
+
+## Manual Docker Compose Commands
+
+Development:
+
+```bash
+docker-compose -f docker-compose.dev.yml up -d
+docker-compose -f docker-compose.dev.yml down
+```
+
+Production:
+
+```bash
+docker-compose -f docker-compose.prod.yml up --build -d
+docker-compose -f docker-compose.prod.yml down
+```
 
 ## API Documentation
 
-Once the backend is running, visit `http://localhost:3000/api-docs` to view the interactive Swagger API documentation.
+Once the backend is running, visit:
 
+```text
+http://localhost:3000/api-docs
+```
 
 ## Environment Variables
 
-### Backend (.env)
-| Variable | Description | Example |
-|----------|-------------|---------|
-| DATABASE_URL | PostgreSQL connection string | `postgresql://user:pass@localhost:5432/db` |
-| JWT_SECRET | Secret for JWT token signing | `your_64_char_secret_here` |
-| STRIPE_SECRET_KEY | Stripe secret key | `sk_test_...` |
-| STRIPE_WEBHOOK_SECRET | Stripe webhook secret | `whsec_...` |
+### Root `.env`
 
-### Frontend (.env.development)
+Used by Docker Compose for shared values.
+
 | Variable | Description | Example |
 |----------|-------------|---------|
-| VITE_API_URL | Backend API URL | `http://localhost:3000/api` |
-| VITE_STRIPE_PUBLISHABLE_KEY | Stripe publishable key | `pk_test_...` |
+| `POSTGRES_USER` | PostgreSQL username | `admin` |
+| `POSTGRES_PASSWORD` | PostgreSQL password | `postgres` |
+| `POSTGRES_DB` | PostgreSQL database name | `concert_db` |
+| `VITE_API_URL` | Public API URL used during frontend production build | `https://api.your-domain.com` |
+| `VITE_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key used by frontend production build | `pk_test_...` |
+
+### Backend `.env`
+
+Used by the backend container.
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `DATABASE_URL` | PostgreSQL connection string inside Docker network | `postgresql://admin:postgres@postgres:5432/concert_db?schema=public` |
+| `PORT` | Backend port | `3000` |
+| `JWT_SECRET` | Secret for JWT token signing | `your_secret_here` |
+| `STRIPE_SECRET_KEY` | Stripe secret key | `sk_test_...` |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook secret | `whsec_...` |
+| `EMAIL_USER` | SMTP username | `your_email@example.com` |
+| `EMAIL_PASS` | SMTP password or app password | `your_password_here` |
+
+Do not commit real production secrets to the repository.
+
+### Frontend `.env.development`
+
+Used by the development frontend container.
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `VITE_API_URL` | Backend API URL | `http://localhost:3000/api` |
+| `VITE_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key | `pk_test_...` |
 
 ## Database Schema
 
-The application uses Prisma ORM with the following main models:
-- User: Authentication and user profiles
-- Category: Event categorization
-- Event: Concert/event details
-- Payment: Transaction records
-- Ticket: Purchased tickets for events
+The application uses Prisma ORM. Main domain models include:
 
-Run `npx prisma studio` to view and manage the database visually.
+- User
+- Category
+- Event
+- EventRole
+- EventRegistration
+- TicketType
+- Ticket
+- Order
+- OrderItem
+- OutboxEvent
 
-## Deployment
+Run Prisma Studio through the backend container when needed:
 
-### Backend Deployment
-1. Ensure all environment variables are set in your hosting environment
-2. Run `yarn install` to install dependencies
-3. Run `npx prisma migrate deploy` to apply migrations
-4. Start the server with `yarn start`
+```bash
+docker exec -it concert_backend npx prisma studio
+```
 
-### Frontend Deployment
-1. Build the frontend with `yarn build`
-2. Deploy the contents of the `dist` directory to your static hosting provider
-3. Ensure the backend API URL is correctly configured
+## Deployment Notes
+
+For production, prefer the production compose file:
+
+```bash
+make prod-up
+```
+
+The production backend command runs:
+
+```bash
+npx prisma migrate deploy && npx prisma db seed && npm start
+```
+
+This means migrations and seed data are applied automatically when the backend container starts.
+
+For frontend production builds, make sure `VITE_API_URL` points to the real API address before building. If the API URL changes, rebuild the frontend image.
 
 ## Contributing
 
@@ -217,3 +410,4 @@ This project is licensed under the ISC License - see the [LICENSE](LICENSE) file
 - Database powered by PostgreSQL and Prisma ORM
 - Payments processed securely with Stripe
 - API documentation generated with Swagger/OpenAPI
+- Containerized with Docker Compose
