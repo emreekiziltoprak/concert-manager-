@@ -33,11 +33,8 @@ enum EventStatus {
 enum EventRoleType {
   OWNER
   CO_ORGANISER
-  SPEAKER
   MODERATOR
-  VOLUNTEER
   SPONSOR
-  ATTENDEE
 }
 
 enum OrderStatus {
@@ -193,6 +190,8 @@ model Order {
   userId      String
   eventId     String
   totalAmount Decimal @db.Decimal(10, 2)
+
+  stripePaymentIntentId String? @unique
 
   status OrderStatus @default(PENDING)
 

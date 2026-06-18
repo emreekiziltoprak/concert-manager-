@@ -69,10 +69,10 @@ const getEventById = async (eventId) => {
     return {...event, ticketTypes: ticketTypesMod};
 };
 
-const updateEvent = async (event, user) => {
+const updateEvent = async (eventId, event, user) => {
     const existingEvent = await prisma.event.findFirst({
         where: {
-            id: event.id,
+            id: eventId,
             deletedAt: null
         }
     });
@@ -83,7 +83,7 @@ const updateEvent = async (event, user) => {
         throw new Error("You have no access for editing this event");
 
     const updatedEvent = await prisma.event.update({
-        where: {id: event.id},
+        where: {id: eventId},
         data: event
     });
 

@@ -29,7 +29,8 @@ const getEventById = async (req, res) => {
 
 const updateEvent = async (req, res) => {
     try {
-        const updatedEvent = await eventService.updateEvent(req.body, req.user);
+        const eventId = req.params.eventId;
+        const updatedEvent = await eventService.updateEvent(eventId, req.body, req.user);
         return res.status(200).send({updatedEvent: updatedEvent});
     } catch(err) {
         res.status(400).send({error: err.message});

@@ -25,6 +25,7 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
+      - "9229:9229"
     env_file:
       - ./backend/.env
     volumes:
@@ -33,7 +34,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    command: sh -c "npx prisma generate && npm run server"
+    command: sh -c "npx prisma generate && node --inspect=0.0.0.0:9229 server.js"
 
   frontend:
     build:

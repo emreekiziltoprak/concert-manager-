@@ -1,28 +1,16 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
-
-
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Launch Program",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-            "program": "${workspaceFolder}\\src\\services\\authService.js"
-        },
-        {
-        "type": "node",
-        "request": "launch",
-        "name": "Debug Backend",
-        "program": "${workspaceFolder}/server.js",
-        "restart": true,
-        "console": "integratedTerminal",
-        "skipFiles": ["<node_internals>/**"]
-        }
-    ]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Docker Backend Debug",
+      "type": "node",
+      "request": "attach", // "launch" (başlat) yerine "attach" (çalışana bağlan) diyoruz
+      "port": 9229,
+      "address": "localhost",
+      "restart": true,
+      "localRoot": "${workspaceFolder}/backend", // Senin ekranındaki kodlar
+      "remoteRoot": "/app", // Docker'ın içindeki kodlar (Eşleştirme için kritik!)
+      "skipFiles": ["<node_internals>/**"]
+    }
+  ]
 }

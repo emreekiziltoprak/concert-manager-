@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node server.js",
-    "server": "nodemon server.js", 
+    "server": "nodemon server.js",
+    "server:debug": "node --inspect=0.0.0.0:9229 server.js",
     "stripe": "stripe listen --forward-to http://localhost:3000/api/payments/webhook",
     "dev": "concurrently \"nodemon server.js\" \"npm run stripe\"" 
    },

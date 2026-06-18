@@ -210,6 +210,7 @@ exports.Prisma.OrderScalarFieldEnum = {
   userId: 'userId',
   eventId: 'eventId',
   totalAmount: 'totalAmount',
+  stripePaymentIntentId: 'stripePaymentIntentId',
   status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -276,11 +277,8 @@ exports.EventStatus = exports.$Enums.EventStatus = {
 exports.EventRoleType = exports.$Enums.EventRoleType = {
   OWNER: 'OWNER',
   CO_ORGANISER: 'CO_ORGANISER',
-  SPEAKER: 'SPEAKER',
   MODERATOR: 'MODERATOR',
-  VOLUNTEER: 'VOLUNTEER',
-  SPONSOR: 'SPONSOR',
-  ATTENDEE: 'ATTENDEE'
+  SPONSOR: 'SPONSOR'
 };
 
 exports.TicketCategory = exports.$Enums.TicketCategory = {

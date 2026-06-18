@@ -96,7 +96,7 @@ export default function EditEventModal({ open, onClose, event, categories, onEve
     };
 
     try {
-      await api.put("/events", payload);
+      await api.put(`/events/${event.id}`, payload);
       onEventUpdated();
       onClose();
     } catch (error) {
