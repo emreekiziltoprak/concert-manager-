@@ -21,9 +21,12 @@ import api from "../config/axios";
 export default function EventDetail() {
   const { eventId } = useParams();
   const navigate = useNavigate();
+  
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [quantities, setQuantities] = useState({});
+  const [checkoutLoading, setCheckoutLoading] = useState(false); // 🚀 Yeni: Ödeme yüklenme durumu
+  
   const { addToCart } = useCart();
 
   useEffect(() => {
@@ -34,8 +37,8 @@ export default function EventDetail() {
         setLoading(false);
       } catch (error) {
         console.error("Failed to fetch event:", error);
-        alert("Failed to load event details");
-        navigate(-1); // Go back
+        alert("Etkinlik detayları yüklenemedi");
+        navigate(-1);
       }
     };
 
@@ -43,11 +46,11 @@ export default function EventDetail() {
   }, [eventId, navigate]);
 
   if (loading) {
-    return <Container sx={{ py: 4 }}><Typography>Loading...</Typography></Container>;
+    return <Container sx={{ py: 4 }}><Typography>Yükleniyor...</Typography></Container>;
   }
 
   if (!event) {
-    return <Container sx={{ py: 4 }}><Typography>Event not found</Typography></Container>;
+    return <Container sx={{ py: 4 }}><Typography>Etkinlik bulunamadı</Typography></Container>;
   }
 
   const getStatusColor = (status) => {
@@ -188,15 +191,18 @@ export default function EventDetail() {
               >
                 Sepete Ekle
               </Button>
+              
+              {/* 🚀 BEST PRACTICE ÖDEMEYE GEÇ BUTONU */}
               <Button 
                 variant="contained" 
                 size="large"
-                onClick={() => {
+                disabled={checkoutLoading}
+                onClick={async () => {
                   const cartItems = Object.entries(quantities)
                     .filter(([_, count]) => count > 0)
                     .map(([ticketTypeId, count]) => ({
                       ticketTypeId,
-                      count
+                      count: parseInt(count, 10)
                     }));
                   
                   if (cartItems.length === 0) {
@@ -204,10 +210,30 @@ export default function EventDetail() {
                     return;
                   }
                   
-                  navigate("/checkout", { state: { cartItems, eventId } });
+                  setCheckoutLoading(true);
+                  try {
+                    // Backend'e gidip siparişi ve Stripe anahtarını oluşturuyoruz
+                    const response = await api.post("/payments/checkout", {
+                      eventId: event.id,
+                      cartItems
+                    });
+
+                    const { clientSecret, orderId } = response.data;
+
+                    // Her şey hazır, şimdi Stripe'ın yükleneceği sayfaya veriyle uçuyoruz!
+                    navigate("/checkout", { 
+                      state: { clientSecret, orderId } 
+                    });
+
+                  } catch (err) {
+                    console.error("Checkout error:", err);
+                    alert(err.response?.data?.error || "Ödeme başlatılamadı, lütfen tekrar deneyin.");
+                  } finally {
+                    setCheckoutLoading(false);
+                  }
                 }}
               >
-                Ödemeye Geç
+                {checkoutLoading ? "Hazırlanıyor..." : "Ödemeye Geç"}
               </Button>
             </Stack>
           </Box>
@@ -222,4 +248,4 @@ export default function EventDetail() {
       </Card>
     </Container>
   );
-}
+} 

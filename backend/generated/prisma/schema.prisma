@@ -179,7 +179,7 @@ model Ticket {
 
   ticketType TicketType @relation(fields: [ticketTypeId], references: [id])
   user       User       @relation(fields: [userId], references: [id])
-  orderItem  OrderItem  @relation(fields: [orderItemId], references: [id])
+  orderItem  OrderItem  @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
 
   createdAt DateTime  @default(now())
   soldDate  DateTime?

@@ -1,12 +1,11 @@
 generator client {
-  provider        = "prisma-client-js"
-  output          = "../generated/prisma" 
-  }
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
 
 datasource db {
   provider = "postgresql"
 }
-
 
 enum TicketCategory {
   STANDARD
@@ -16,9 +15,8 @@ enum TicketCategory {
   FREE
 }
 
-
 enum UserRole {
-  USER 
+  USER
   ORGANISER
   ADMIN
   SUPER_ADMIN
@@ -46,55 +44,55 @@ enum OrderStatus {
 }
 
 model User {
-  id              String   @id @default(uuid())
-  email           String   @unique @db.VarChar(255)
-  passwordHash    String   @db.VarChar(255)
-  fullName        String   @db.VarChar(100)
-  avatarUrl       String?  @db.VarChar(500)
+  id              String              @id @default(uuid())
+  email           String              @unique @db.VarChar(255)
+  passwordHash    String              @db.VarChar(255)
+  fullName        String              @db.VarChar(100)
+  avatarUrl       String?             @db.VarChar(500)
   bio             String?
-  phoneNumber     String?  @db.VarChar(20)
-  isActive        Boolean  @default(true)
-  isEmailVerified Boolean  @default(false)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  phoneNumber     String?             @db.VarChar(20)
+  isActive        Boolean             @default(true)
+  isEmailVerified Boolean             @default(false)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
   deletedAt       DateTime?
-  role            UserRole @default(USER)
-  tickets Ticket[]
-  orders Order[]
-  organizedEvents    Event[]
-  registrations      EventRegistration[]
-  eventRoles         EventRole[] @relation("relatedUser")
-  assignedBy EventRole[] @relation("AssignedBy")
+  role            UserRole            @default(USER)
+  tickets         Ticket[]
+  orders          Order[]
+  organizedEvents Event[]
+  registrations   EventRegistration[]
+  eventRoles      EventRole[]         @relation("relatedUser")
+  assignedBy      EventRole[]         @relation("AssignedBy")
 
   @@map("users")
 }
 
 model Event {
-  id            String   @id @default(uuid())
+  id            String      @id @default(uuid())
   organizerId   String
   categoryId    String
-  title         String   @db.VarChar(200)
-  slug          String   @unique @db.VarChar(255)
+  title         String      @db.VarChar(200)
+  slug          String      @unique @db.VarChar(255)
   description   String
-  coverImageUrl String?  @db.VarChar(500)
+  coverImageUrl String?     @db.VarChar(500)
   startDate     DateTime
   endDate       DateTime
-  address       String   @db.VarChar(500)
-  latitude      Decimal? @db.Decimal(9, 6)
-  longitude     Decimal? @db.Decimal(9, 6)
+  address       String      @db.VarChar(500)
+  latitude      Decimal?    @db.Decimal(9, 6)
+  longitude     Decimal?    @db.Decimal(9, 6)
   capacity      Int
   status        EventStatus @default(DRAFT)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
   deletedAt     DateTime?
-  price       Float    @default(0)
+  price         Float       @default(0)
 
-  organizer     User     @relation(fields: [organizerId], references: [id])
-  category      Category @relation(fields: [categoryId], references: [id])
+  organizer     User                @relation(fields: [organizerId], references: [id])
+  category      Category            @relation(fields: [categoryId], references: [id])
   registrations EventRegistration[]
-  eventRoles EventRole[]
-  ticketTypes TicketType[]
-  orders Order[]
+  eventRoles    EventRole[]
+  ticketTypes   TicketType[]
+  orders        Order[]
 
   @@index([organizerId])
   @@index([categoryId])
@@ -103,17 +101,18 @@ model Event {
 }
 
 model EventRole {
-  id String  @id @default(uuid())
-  eventId String
-  userId String
+  id           String        @id @default(uuid())
+  eventId      String
+  userId       String
   assignedById String
-  role EventRoleType
+  role         EventRoleType
 
-  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  user  User @relation("relatedUser", fields: [userId], references: [id], onDelete: Cascade)
-  assignedByUser User @relation("AssignedBy", fields: [assignedById], references: [id])
+  event          Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user           User  @relation("relatedUser", fields: [userId], references: [id], onDelete: Cascade)
+  assignedByUser User  @relation("AssignedBy", fields: [assignedById], references: [id])
 
   assignedAt DateTime @default(now())
+
   @@unique([eventId, userId])
   @@index([eventId])
   @@index([userId])
@@ -148,19 +147,19 @@ model EventRegistration {
 }
 
 model TicketType {
-  id String @id @default(uuid())
+  id      String  @id @default(uuid())
   eventId String
-  name String
-  price Decimal @db.Decimal(10,2)
-  
+  name    String
+  price   Decimal @db.Decimal(10, 2)
+
   totalCount Int
 
   isActive Boolean @default(true)
 
   category TicketCategory @default(STANDARD)
 
-  event Event @relation(fields: [eventId], references: [id])
-  tickets Ticket[]
+  event      Event       @relation(fields: [eventId], references: [id])
+  tickets    Ticket[]
   orderItems OrderItem[]
 
   createdAt DateTime @default(now())
@@ -172,37 +171,35 @@ model Ticket {
   id String @id @default(uuid())
 
   ticketTypeId String
-  orderItemId String
-  userId String
+  orderItemId  String
+  userId       String
 
   isSold Boolean
   isUsed Boolean @default(false)
-  
+
   ticketType TicketType @relation(fields: [ticketTypeId], references: [id])
-  user User @relation(fields: [userId], references: [id])
-  orderItem OrderItem @relation(fields: [orderItemId], references: [id])
+  user       User       @relation(fields: [userId], references: [id])
+  orderItem  OrderItem  @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
 
-  createdAt DateTime @default(now())
-  soldDate DateTime? 
-
+  createdAt DateTime  @default(now())
+  soldDate  DateTime?
 }
 
 model Order {
-  id String @id @default(uuid())
-  userId String
-  eventId String
+  id          String  @id @default(uuid())
+  userId      String
+  eventId     String
   totalAmount Decimal @db.Decimal(10, 2)
-  
+
   stripePaymentIntentId String? @unique
 
-  status OrderStatus @default(PENDING) 
-  
-  user User @relation(fields: [userId], references: [id])
+  status OrderStatus @default(PENDING)
+
+  user  User  @relation(fields: [userId], references: [id])
   event Event @relation(fields: [eventId], references: [id])
 
-
   orderItems OrderItem[]
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -212,26 +209,26 @@ model Order {
 //groups tickets by  ticketType and it applies this for just one ticketType
 //virtual orderItem, if the user doesnt buy ticket then ticket 
 model OrderItem {
-  id String @id @default(uuid())
-  orderId String 
+  id           String @id @default(uuid())
+  orderId      String
   ticketTypeId String
 
-  quantity Int
-  unitPrice Decimal @db.Decimal(10,2)
-  totalPrice Decimal @db.Decimal(10,2)
+  quantity   Int
+  unitPrice  Decimal @db.Decimal(10, 2)
+  totalPrice Decimal @db.Decimal(10, 2)
 
-  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order      Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
   ticketType TicketType @relation(fields: [ticketTypeId], references: [id])
-  tickets Ticket[] //real tickets, will be created after payment
-   
+  tickets    Ticket[] //real tickets, will be created after payment
+
   @@map("order_items")
 }
 
 model OutboxEvent {
   id        String   @id @default(uuid())
-  type      String   
-  payload   Json    
-  status    String   @default("PENDING") 
+  type      String
+  payload   Json
+  status    String   @default("PENDING")
   error     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
