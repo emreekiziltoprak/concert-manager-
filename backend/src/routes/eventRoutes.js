@@ -57,6 +57,72 @@ router.get("/:eventId", authMiddleware, eventController.getEventById);
 
 /**
  * @swagger
+ * /api/events/{eventId}/ticket-types:
+ *   post:
+ *     summary: Create a ticket type for an event
+ *     tags: [Events]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: eventId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Event ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - price
+ *               - capacity
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: VIP
+ *               price:
+ *                 type: number
+ *                 example: 250
+ *               capacity:
+ *                 type: integer
+ *                 example: 100
+ *               category:
+ *                 type: string
+ *                 enum:
+ *                   - STANDARD
+ *                   - CHILD
+ *                   - STUDENT
+ *                   - EARLY_BID
+ *                   - FREE
+ *                 example: STANDARD
+ *               isActive:
+ *                 type: boolean
+ *                 example: true
+ *     responses:
+ *       201:
+ *         description: Ticket type created successfully
+ *       400:
+ *         description: Invalid request body
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Event not found
+ */
+router.post(
+  "/:eventId/ticket-types",
+  authMiddleware,
+  authorizeEventRole("OWNER", "CO_ORGANISER"),
+  eventController.addTicketTypeToEvent
+);
+
+/**
+ * @swagger
  * /api/events:
  *   post:
  *     summary: Create a new event

@@ -62,8 +62,45 @@ const getOrderTicketsEmail = async (orderId) => {
     return order;
 }
 
+const createTicketType = async (eventId, ticketTypeData) => {
+    const createdTicketType = await prisma.$transaction(async (tx) => {
+        const event = await tx.event.findUnique({
+            where: { id: eventId },
+            select: { id: true, deletedAt: true },
+        });
+
+        if (!event || event.deletedAt !== null) {
+            const error = new Error("Event not found");
+            error.statusCode = 404;
+            throw error;
+        }
+
+        return tx.ticketType.create({
+            data: {
+                eventId,
+                name: ticketTypeData.name.trim(),
+                price: String(ticketTypeData.price),
+                totalCount: ticketTypeData.capacity,
+                category: ticketTypeData.category || "STANDARD",
+                isActive: ticketTypeData.isActive ?? true,
+            },
+            include: {
+                event: {
+                    select: {
+                        id: true,
+                        title: true,
+                    },
+                },
+            },
+        });
+    });
+
+    return createdTicketType;
+};
+
 module.exports = {
     getUserTicketsWithQrCode,
     validateUserTicket,
-    getOrderTicketsEmail
+    getOrderTicketsEmail,
+    createTicketType
 };
