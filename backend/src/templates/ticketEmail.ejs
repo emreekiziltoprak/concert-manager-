@@ -7,7 +7,7 @@
 
     <p>
         Date:
-        <%= new Date(event.date).toLocaleDateString('en-US', {
+        <%= new Date(event.startDate).toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'long',
             day: 'numeric'
@@ -46,12 +46,12 @@
         Your tickets have been successfully registered in our system. Please present them at the entrance.
     </p>
 
-    <p>
-        📍 Location:
-        <a href="https://maps.google.com/?q=<%= encodeURIComponent(event.location) %>">
-            Open in Google Maps
-        </a>
-    </p>
+   <p>
+    📍 Location:
+    <a href="https://www.google.com/maps?q=<%= event.latitude %>,<%= event.longitude %>" target="_blank">
+        Open in Google Maps
+    </a>
+</p>
 
     <p>
         We look forward to seeing you at the event!

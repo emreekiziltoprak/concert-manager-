@@ -1,4 +1,4 @@
-const path = require('path'); // <--- İŞTE EKSİK OLAN SATIR BU!
+const path = require('path');
 const ejs = require('ejs');
 
 const nodemailer = require('nodemailer');
@@ -20,7 +20,7 @@ const sendTicketEmail = async (userEmail, fullName, ticketData) => {
     const htmlContent = await ejs.renderFile(templatePath, {
         fullName: fullName,
         event: ticketData.event,
-        orderItems: ticketData.orderItem
+        orderItems: ticketData.orderItems
     });
 
     const mailOptions = {
