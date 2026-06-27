@@ -5,7 +5,7 @@ up: dev-up
 prod: prod-up
 
 dev-up:
-	$(COMPOSE_DEV) up -d
+	$(COMPOSE_DEV) up
 
 dev-down:
 	$(COMPOSE_DEV) down
@@ -56,3 +56,6 @@ logs:
 
 ps:
 	docker-compose ps
+
+stripe:
+	cd backend && npm run stripe
