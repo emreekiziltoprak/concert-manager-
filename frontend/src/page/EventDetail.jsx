@@ -17,11 +17,13 @@ import LocationOnIcon from "@mui/icons-material/LocationOn";
 import { useNavigate, useParams } from "react-router";
 import { useCart } from "../context/cartContext";
 import api from "../config/axios";
-
+import { useAuth } from "../authContext/authcontext";
+import { v4 as uuidv4 } from "uuid";
 export default function EventDetail() {
   const { eventId } = useParams();
   const navigate = useNavigate();
-  
+  const { user } = useAuth();
+  const [imdempotencyK, setIdempotencyKey] = useState(uuidv4());
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [quantities, setQuantities] = useState({});
@@ -212,15 +214,17 @@ export default function EventDetail() {
                   
                   setCheckoutLoading(true);
                   try {
-                    // Backend'e gidip siparişi ve Stripe anahtarını oluşturuyoruz
                     const response = await api.post("/payments/checkout", {
                       eventId: event.id,
                       cartItems
-                    });
+                    }, {headers: {
+                        "Idempotency-Key": `${imdempotencyK}-${user.userId}`,
+                      },});
 
                     const { clientSecret, orderId } = response.data;
 
-                    // Her şey hazır, şimdi Stripe'ın yükleneceği sayfaya veriyle uçuyoruz!
+                    setIdempotencyKey(uuidv4());
+                    
                     navigate("/checkout", { 
                       state: { clientSecret, orderId } 
                     });

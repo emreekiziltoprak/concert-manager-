@@ -8,7 +8,7 @@ const checkout = async (req, res) => {
     try {
         const { eventId, cartItems } = req.body
 
-        const order = await paymentService.createOrder(req.user.userId, eventId, cartItems)
+        const order = await paymentService.createOrder(req.user.userId, eventId, cartItems);
 
         const clientSecret = await paymentService.createPaymentIntent(order.id, order.totalAmount);
 

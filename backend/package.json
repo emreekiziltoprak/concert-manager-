@@ -8,11 +8,11 @@
     "server": "nodemon server.js",
     "server:debug": "node --inspect=0.0.0.0:9229 server.js",
     "stripe": "stripe listen --forward-to http://localhost:3000/api/payments/webhook",
-    "dev": "concurrently \"nodemon server.js\" \"npm run stripe\"" 
-   },
-   "prisma": {
+    "dev": "concurrently \"nodemon server.js\" \"npm run stripe\""
+  },
+  "prisma": {
     "seed": "node prisma/seed.js"
-    },
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -29,6 +29,7 @@
     "event-hub-frontend": "file:frontend/event-hub-frontend",
     "express": "^5.2.1",
     "express-validator": "^7.3.2",
+    "ioredis": "^5.11.1",
     "jsonwebtoken": "^9.0.3",
     "node-cron": "^4.2.1",
     "nodemailer": "^8.0.10",

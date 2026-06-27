@@ -4,7 +4,7 @@ const cookieParser = require("cookie-parser")
 require("dotenv").config();
 const swaggerUi = require("swagger-ui-express");
 const swaggerSpecs = require("./src/config/swagger");
-
+require('./src/services/redisClient');
 const authRoutes = require("./src/routes/authRoutes");
 const categoryRoutes = require("./src/routes/categoryRoutes");
 const eventRoutes = require("./src/routes/eventRoutes");

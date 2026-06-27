@@ -4,7 +4,7 @@ const router = express.Router();
 const paymentController = require("../controllers/paymentController");
 
 const authMiddleware = require("../middlewares/authMiddleware");
-
+const idempotencyMiddleware = require("../middlewares/idempotencyMiddleware");
 /**
  * @swagger
  * /payments/checkout:
@@ -49,7 +49,7 @@ const authMiddleware = require("../middlewares/authMiddleware");
  *       401:
  *         description: Unauthorized
  */
-router.post("/checkout", authMiddleware, paymentController.checkout);
+router.post("/checkout", authMiddleware,idempotencyMiddleware, paymentController.checkout);
 
 /**
  * @swagger
