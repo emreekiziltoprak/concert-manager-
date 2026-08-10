@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - "5433:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5433}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -18,12 +18,21 @@ services:
       retries: 10
 
   redis:
-    image: redis:alpine
+    image: redis:7-alpine
     container_name: concert_redis
     ports:
-    - "6379:6379"
-    networks:
-    - default
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
+
+    volumes:
+      - redis_data:/data
+
+    restart: unless-stopped
+    
+    healthcheck: 
+      test: ["CMD","redis-cli","ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
   backend:
     build:
@@ -33,7 +42,7 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
-      - "9229:9229"
+      - "127.0.0.1:${DEBUG_PORT:-9229}:9229"
     env_file:
       - ./backend/.env
     volumes:
@@ -42,7 +51,9 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    command: sh -c "npx prisma generate && node --inspect=0.0.0.0:9229 server.js"
+      redis:
+        condition: service_healthy
+    command: sh -c "npx prisma generate && npx prisma migrate deploy && npx nodemon -L --inspect=0.0.0.0:9229 server.js"
 
   frontend:
     build:
@@ -62,3 +73,4 @@ services:
 
 volumes:
   postgres_data:
+  redis_data:
