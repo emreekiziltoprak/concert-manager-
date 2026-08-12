@@ -8,7 +8,8 @@
     "server": "nodemon server.js",
     "server:debug": "node --inspect=0.0.0.0:9229 server.js",
     "stripe": "stripe listen --forward-to http://localhost:3000/api/payments/webhook",
-    "dev": "concurrently \"nodemon server.js\" \"npm run stripe\""
+    "dev": "concurrently \"nodemon server.js\" \"npm run stripe\"",
+    "test": "jest --runInBand"
   },
   "prisma": {
     "seed": "node prisma/seed.js"
@@ -42,6 +43,8 @@
     "uuid": "^14.0.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "jest": "^30.4.2",
+    "nodemon": "^3.1.14",
+    "supertest": "^7.2.2"
   }
 }

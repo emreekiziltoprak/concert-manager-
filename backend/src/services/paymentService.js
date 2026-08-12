@@ -1,5 +1,6 @@
 const prisma = require("../utils/prismaClient");
 const stripe = require("../utils/stripeClient");
+const { calculateAvailableStock } = require("./stockCalculation");
 
 
 //returns orderItemData
@@ -30,7 +31,7 @@ const createOrder = async (userId, eventId, cartItems) => {
                 quantity: true
             }
         })
-        const availableTickets = ticketType.totalCount - (aggregations._sum.quantity || 0);
+        const availableTickets = calculateAvailableStock(ticketType.totalCount, aggregations._sum.quantity || 0);
 
         //if the available tickets arent enough throw error
         if(availableTickets < ticket.count) 
