@@ -42,6 +42,9 @@ db-shell:
 sh-be:
 	docker exec -it concert_backend sh
 
+test:
+	docker exec -it concert_backend npm test
+
 sh-fe:
 	docker exec -it concert_frontend sh
 

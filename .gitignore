@@ -1,5 +1,13 @@
 node_modules
 # Keep environment variables out of version control
 .env
+.env.test
 
 /generated/prisma
+.agents
+.claude
+skills-lock.json
+
+# Agent work orders: already-executed task lists, stale once merged.
+# The design specs under docs/superpowers/specs/ are kept on purpose.
+docs/superpowers/plans/
