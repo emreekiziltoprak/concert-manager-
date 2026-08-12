@@ -4,3 +4,10 @@ node_modules
 .env.test
 
 /generated/prisma
+.agents
+.claude
+skills-lock.json
+
+# Agent work orders: already-executed task lists, stale once merged.
+# The design specs under docs/superpowers/specs/ are kept on purpose.
+docs/superpowers/plans/
