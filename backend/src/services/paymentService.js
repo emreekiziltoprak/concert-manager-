@@ -79,8 +79,18 @@ const completePayment = async (orderId) => {
     if(order.status == "SUCCESS")
         throw new Error("this order is processed");
 
+    if(order.status == "CANCELLED")
+        throw new Error("this order was cancelled before the payment completed");
+
     //create QR based tickets
     await prisma.$transaction(async (tx) => {
+        const claimed = await tx.order.updateMany({
+            where: {id: orderId, status: "PENDING"},
+            data: {status: "SUCCESS"}
+        });
+
+        if(claimed.count === 0) throw new Error("this order is processed");
+
         const ticketsData = [];
         //each orderıtem represents different types of orders based on 
         //eachtickettypes
@@ -99,11 +109,6 @@ const completePayment = async (orderId) => {
             data: ticketsData
         });
 
-        await tx.order.update({
-            where: {id: orderId},
-            data: {status: "SUCCESS"}
-        });
-
         //TODO:: create workbox event and send email
         await tx.outboxEvent.create({
             data: {
@@ -120,14 +125,98 @@ const completePayment = async (orderId) => {
  
 }
 
-const createPaymentIntent = async (orderId, amount) => {
+const createPaymentIntent = async (orderId, amount, replacing = null) => {
     const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(amount* 100),
         metadata: {orderId: orderId},
         currency: "try"
-    })
+    },
+    { idempotencyKey: replacing ? `order_${orderId}_after_${replacing}` : `order_${orderId}` })
+
+    await prisma.order.update({
+        where: {id: orderId},
+        data: {stripePaymentIntentId: paymentIntent.id}
+    });
 
     return paymentIntent.client_secret;
 };
 
-module.exports = {createOrder, completePayment, createPaymentIntent};
+const findPendingOrder = async (userId, eventId) => {
+    return await prisma.order.findFirst({
+        where: {userId, eventId, status: "PENDING"},
+        include: {orderItems: true}
+    });
+};
+
+const matchesCart = (order, cartItems = []) => {
+    if(order.orderItems.length !== cartItems.length) return false;
+
+    return cartItems.every(item => order.orderItems.some(
+        existing => existing.ticketTypeId === item.ticketTypeId
+                 && existing.quantity === item.count
+    ));
+};
+
+const cancelPendingOrder = async (order) => {
+    if(order.stripePaymentIntentId){
+        const intent = await stripe.paymentIntents.retrieve(order.stripePaymentIntentId);
+
+        if(intent.status === "succeeded" || intent.status === "processing") return false;
+
+        if(intent.status !== "canceled"){
+            await stripe.paymentIntents.cancel(order.stripePaymentIntentId);
+        }
+    }
+
+    const cancelled = await prisma.order.updateMany({
+        where: {id: order.id, status: "PENDING"},
+        data: {status: "CANCELLED"}
+    });
+
+    return cancelled.count > 0;
+};
+
+
+/**
+ * 
+ * @param {*} order
+ * @returns {{status: string, clientSecret: string|null, orderId: string|number}}
+
+ */
+const resumePendingOrder = async (order) => {
+
+    if(!order.stripePaymentIntentId){
+        const clientSecret = await createPaymentIntent(order.id, order.totalAmount);
+        return {status: "REQUIRES_PAYMENT", clientSecret, orderId: order.id};
+    }
+
+    const intent = await stripe.paymentIntents.retrieve(order.stripePaymentIntentId);
+
+    //if payment is succeeded, and the order is stuck on pending, then we complete order on db level
+    //make it success and create qr tickets, with actual tickets
+       if(intent.status === "succeeded"){
+        await completePayment(order.id).catch(error => {
+            if(error.message !== "this order is processed") throw error;
+        });
+        return {status: "SUCCESS", orderId: order.id};
+    }
+
+    //if intent is cancelled, and, order stuck on pending, we recreate intent
+    //because we want the order to continue
+    if(intent.status === "canceled"){
+        const clientSecret = await createPaymentIntent(
+            order.id, order.totalAmount, order.stripePaymentIntentId
+        );
+        return {status: "REQUIRES_PAYMENT", clientSecret, orderId: order.id};
+    }
+
+    //already processing, nothing to do
+    if(intent.status === "processing"){
+        return {status: "PROCESSING", orderId: order.id};
+    }
+
+    //works when: requires_payment_method, requires_confirmation, requires_action
+    return {status: "REQUIRES_PAYMENT", clientSecret: intent.client_secret, orderId: order.id};
+};
+
+module.exports = {createOrder, completePayment, createPaymentIntent, findPendingOrder, matchesCart, cancelPendingOrder, resumePendingOrder};

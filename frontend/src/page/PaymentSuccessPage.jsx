@@ -20,20 +20,20 @@ export default function PaymentSuccessPage() {
   const { clearCart } = useCart();
 
   useEffect(() => {
-    const paymentIntent = searchParams.get("payment_intent");
-    const paymentIntentClientSecret = searchParams.get(
-      "payment_intent_client_secret"
-    );
+    const redirectStatus = searchParams.get("redirect_status");
 
-    if (paymentIntent && paymentIntentClientSecret) {
+    if (!redirectStatus || redirectStatus === "succeeded") {
       setStatus("success");
       clearCart();
-    } else if (searchParams.get("redirect_status") === "failed") {
-      setStatus("failed");
-    } else {
-      setStatus("success");
-      clearCart();
+      return;
     }
+
+    if (redirectStatus === "processing") {
+      setStatus("processing");
+      return;
+    }
+
+    setStatus("failed");
   }, [searchParams, clearCart]);
 
   if (status === "loading") {
@@ -57,7 +57,7 @@ export default function PaymentSuccessPage() {
       minHeight="60vh"
     >
       <Paper sx={{ p: 4, maxWidth: 500, width: "100%", textAlign: "center" }}>
-        {status === "success" ? (
+        {status === "success" && (
           <>
             <CheckCircleIcon color="success" sx={{ fontSize: 64, mb: 2 }} />
             <Typography variant="h4" gutterBottom>
@@ -75,7 +75,29 @@ export default function PaymentSuccessPage() {
               Back to Events
             </Button>
           </>
-        ) : (
+        )}
+
+        {status === "processing" && (
+          <>
+            <CircularProgress sx={{ mb: 2 }} />
+            <Typography variant="h4" gutterBottom>
+              Payment Processing
+            </Typography>
+            <Alert severity="info" sx={{ mb: 3 }}>
+              Your bank is still reviewing this payment. We will email your
+              tickets as soon as it clears — there is no need to pay again.
+            </Alert>
+            <Button
+              variant="contained"
+              size="large"
+              onClick={() => navigate("/events")}
+            >
+              Back to Events
+            </Button>
+          </>
+        )}
+
+        {status === "failed" && (
           <>
             <ErrorIcon color="error" sx={{ fontSize: 64, mb: 2 }} />
             <Typography variant="h4" gutterBottom>
@@ -87,7 +109,7 @@ export default function PaymentSuccessPage() {
             <Button
               variant="contained"
               size="large"
-              onClick={() => navigate("/checkout")}
+              onClick={() => navigate("/events")}
             >
               Try Again
             </Button>

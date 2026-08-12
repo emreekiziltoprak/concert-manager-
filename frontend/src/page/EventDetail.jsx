@@ -194,7 +194,6 @@ export default function EventDetail() {
                 Sepete Ekle
               </Button>
               
-              {/* 🚀 BEST PRACTICE ÖDEMEYE GEÇ BUTONU */}
               <Button 
                 variant="contained" 
                 size="large"
@@ -221,12 +220,21 @@ export default function EventDetail() {
                         "Idempotency-Key": `${imdempotencyK}-${user.userId}`,
                       },});
 
-                    const { clientSecret, orderId } = response.data;
+                    const { status, clientSecret, orderId } = response.data;
 
                     setIdempotencyKey(uuidv4());
-                    
-                    navigate("/checkout", { 
-                      state: { clientSecret, orderId } 
+                    if (status === "SUCCESS") {
+                      navigate("/payment-success", { state: { orderId } });
+                      return;
+                    }
+
+                    if (status === "PROCESSING") {
+                      alert("Ödemeniz banka tarafından kontrol ediliyor. Sonuçlandığında e-posta ile bilgilendirileceksiniz.");
+                      return;
+                    }
+
+                    navigate("/checkout", {
+                      state: { clientSecret, orderId }
                     });
 
                   } catch (err) {
