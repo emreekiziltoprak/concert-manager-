@@ -22,7 +22,7 @@ export default function EventCard({ event, categories, onEventUpdated, onEditCli
   const handleDelete = async () => {
     if (!window.confirm("Are you sure you want to delete this event?")) return;
     try {
-      await api.delete("/events", { data: { eventId: event.id } });
+      await api.delete(`/events/${event.id}`);
       onEventUpdated?.();
     } catch (error) {
       console.error(error);

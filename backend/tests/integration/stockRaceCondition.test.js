@@ -59,8 +59,9 @@ test("exactly enough concurrent orders succeed to reach available stock, never e
 });
 
 test("rolls back the whole order when one cart item has insufficient stock", async () => {
-  const okType = await createTestTicketType({ eventId: event.id, totalCount: 10 });
-  const scarceType = await createTestTicketType({ eventId: event.id, totalCount: 1 });
+  // Names must differ: ticket_types is unique on (eventId, name).
+  const okType = await createTestTicketType({ eventId: event.id, name: "Plenty", totalCount: 10 });
+  const scarceType = await createTestTicketType({ eventId: event.id, name: "Scarce", totalCount: 1 });
 
   const cartItems = [
     { ticketTypeId: okType.id, count: 1 },

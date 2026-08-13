@@ -164,6 +164,7 @@ model TicketType {
 
   createdAt DateTime @default(now())
 
+  @@unique([eventId, name])
   @@map("ticket_types")
 }
 
