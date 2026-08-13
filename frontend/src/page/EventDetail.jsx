@@ -65,6 +65,13 @@ export default function EventDetail() {
     }
   };
 
+  // Deactivating a ticket type is what the API tells a manager to do when a
+  // delete is refused because orders reference it, so the buyer view has to
+  // honour the flag or "deactivate" means nothing.
+  const availableTicketTypes = (event.ticketTypes || []).filter(
+    (ticketType) => ticketType.isActive !== false
+  );
+
   return (
     <Container sx={{ py: 4 }}>
       <Box sx={{ textAlign: "right", mb: 2 }}>
@@ -135,8 +142,13 @@ export default function EventDetail() {
             <Typography variant="h5" fontWeight="bold" sx={{ mb: 2 }}>
               Bilet Tipleri
             </Typography>
+            {availableTicketTypes.length === 0 && (
+              <Typography color="text.secondary">
+                Bu etkinlik için şu anda satışta bilet bulunmuyor.
+              </Typography>
+            )}
             <Grid container spacing={3}>
-              {event.ticketTypes && event.ticketTypes.map((ticketType) => (
+              {availableTicketTypes.map((ticketType) => (
                 <Grid item xs={12} sm={6} md={4} key={ticketType.id}>
                   <Card sx={{ boxShadow: 2, borderRadius: 2 }}>
                     <CardContent sx={{ p: 3 }}>
