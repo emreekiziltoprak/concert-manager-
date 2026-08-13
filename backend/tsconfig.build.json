@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // Stays true while the migration is in progress, because src/ is still mostly
+    // JavaScript and the build has to emit it. Flip to false in the final batch:
+    // from then on a stray .js left in src/ should fail the build rather than be
+    // silently emitted.
+    "allowJs": true
+  },
+  "exclude": ["node_modules", "dist", "generated", "tests", "**/*.test.ts", "**/*.test.js"]
+}

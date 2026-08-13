@@ -53,7 +53,10 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    command: sh -c "npx prisma generate && npx prisma migrate deploy && npx nodemon -L --inspect=0.0.0.0:9229 server.js"
+    # nodemon still drives the restart because -L (polling) is what makes file
+    # changes visible through a Windows bind mount; tsx is only the executor, so
+    # the entry can be .js today and .ts once it is converted.
+    command: sh -c "npx prisma generate && npx prisma migrate deploy && npx nodemon -L --ext ts,js,json --ignore dist --exec 'npx tsx --inspect=0.0.0.0:9229 ./server'"
 
   frontend:
     build:
