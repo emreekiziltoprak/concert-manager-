@@ -104,10 +104,14 @@ const TICKET_TYPE = {
 
 /** Messages about individual issued tickets, used when scanning at the door. */
 const TICKET = {
+    /** 400 - the scan request carried no ticket id. */
+    ID_REQUIRED: "Ticket ID is required.",
     /** The scanned id matches no ticket. */
     INVALID: "Invalid ticket! No ticket matching this ID was found in the system.",
     /** The ticket exists but was already scanned; a warning, not a lookup failure. */
-    ALREADY_USED: "WARNING: This ticket has already been used!"
+    ALREADY_USED: "WARNING: This ticket has already been used!",
+    /** Success, shown to whoever is working the door. */
+    VALIDATED: "Ticket validated successfully."
 };
 
 /** Messages produced while authenticating and authorizing a request. */
