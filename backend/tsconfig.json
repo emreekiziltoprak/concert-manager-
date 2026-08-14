@@ -1,0 +1,49 @@
+{
+  "compilerOptions": {
+    // Node 20 supports ES2022 in full.
+    "target": "ES2022",
+    "lib": ["ES2022"],
+
+    // package.json stays "type": "commonjs"; every module still uses require/module.exports
+    // until its batch converts it.
+    "module": "CommonJS",
+    "moduleResolution": "node",
+
+    // rootDir must cover both src/ and server.ts, so output lands as
+    // dist/server.js + dist/src/**.
+    "rootDir": ".",
+    "outDir": "dist",
+
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+
+    // The point of an incremental migration: .js and .ts coexist. checkJs stays off
+    // so files that have not been converted yet are not type-checked.
+    "allowJs": true,
+    "checkJs": false,
+
+    // docker-compose.dev.yml maps the inspector on 9229; without source maps
+    // breakpoints land in the wrong place.
+    "sourceMap": true,
+    "declaration": false,
+
+    // Load-bearing, not cosmetic: swagger-jsdoc parses the emitted
+    // dist/src/routes/*.js for @swagger blocks. Stripping comments would leave
+    // /api-docs empty with no error anywhere. It is also why the build must stay
+    // on tsc -- esbuild and swc strip comments unconditionally.
+    "removeComments": false,
+
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "forceConsistentCasingInFileNames": true,
+
+    // generated/prisma/index.d.ts is ~20k lines and is not ours to fix.
+    "skipLibCheck": true,
+
+    "types": ["node", "jest"]
+  },
+  "include": ["src/**/*", "server.ts", "server.js", "tests/**/*"],
+  "exclude": ["node_modules", "dist", "generated"]
+}
