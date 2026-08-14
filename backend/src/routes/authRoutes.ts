@@ -4,6 +4,8 @@ import express from "express";
 // `module.exports = {...}`, an `export =`, and named ESM exports, so the
 // `authController.register` call sites below stay valid either way.
 import * as authController from "../controllers/authController";
+import { validateResponse } from "../middlewares/validate";
+import { loginSchema, registerSchema } from "../schemas/auth.schema";
 
 const router = express.Router();
 
@@ -36,7 +38,7 @@ const router = express.Router();
  *       400:
  *         description: Bad request
  */
-router.post("/register", authController.register);
+router.post("/register", validateResponse(registerSchema), authController.register);
 
 /**
  * @swagger
@@ -65,7 +67,7 @@ router.post("/register", authController.register);
  *       400:
  *         description: Bad request
  */
-router.post("/login", authController.login);
+router.post("/login", validateResponse(loginSchema), authController.login);
 
 // `export =`, not `export default`: under module: commonjs a default export
 // emits `module.exports.default`, and app.ts would mount the wrapper object
