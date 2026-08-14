@@ -87,8 +87,7 @@ router.get("/", categoryController.getCategories);
  *       403:
  *         description: Forbidden
  */
-router.delete(
-  "/:categoryId",
+router.delete("/",
   authMiddleware,
   authorizeRoles("ADMIN", "SUPER_ADMIN"),
   categoryController.deleteCategory
