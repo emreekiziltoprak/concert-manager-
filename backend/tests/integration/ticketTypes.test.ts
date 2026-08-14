@@ -218,10 +218,10 @@ describe("POST /api/events/:eventId/ticket-types", () => {
     expect(response.status).toBe(400);
     expect(response.body.errors).toEqual(
       expect.arrayContaining([
-        expect.stringContaining("name"),
-        expect.stringContaining("price"),
-        expect.stringContaining("capacity"),
-        expect.stringContaining("category")
+        expect.objectContaining({ field: "name" }),
+        expect.objectContaining({ field: "price" }),
+        expect.objectContaining({ field: "capacity" }),
+        expect.objectContaining({ field: "category" })
       ])
     );
   });

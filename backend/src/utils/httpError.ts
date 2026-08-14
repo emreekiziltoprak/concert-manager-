@@ -1,4 +1,4 @@
-type ValidationErrors = {
+export type ValidationErrors = {
     field: string | number,
     message: string
 }
@@ -29,5 +29,7 @@ export const unauthorized = (message: string): HttpError => new HttpError(messag
 
 export const forbidden = (message: string): HttpError => new HttpError(message, 403);
 
+// Joining the objects directly would stringify each one as "[object Object]",
+// so the top-level message is built from the messages alone.
 export const validationFailed = (errors: ValidationErrors[]): HttpError =>
-    new HttpError(errors.join(" "), 400, errors);
+    new HttpError(errors.map(error => error.message).join(" "), 400, errors);
