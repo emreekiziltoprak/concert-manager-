@@ -1,21 +1,32 @@
-const { prisma, truncateAll, disconnect } = require("../helpers/db");
-const { createTestUser, createTestEvent } = require("../helpers/fixtures");
+import { prisma, truncateAll, disconnect } from "../helpers/db";
+import { createTestUser, createTestEvent } from "../helpers/fixtures";
+import type { Event, User } from "../../generated/prisma";
+import type { OrderStatus } from "../../generated/prisma";
 
 jest.mock("../../src/utils/stripeClient", () => require("../helpers/stripeMock"));
-const { paymentIntents } = require("../helpers/stripeMock");
+import stripeMock = require("../helpers/stripeMock");
+const { paymentIntents } = stripeMock;
 
-const { cancelExpiredPendingOrders } = require("../../src/services/orderService");
+import { cancelExpiredPendingOrders } from "../../src/services/orderService";
 
 const ELEVEN_MINUTES_AGO = new Date(Date.now() - 11 * 60 * 1000);
 const FIVE_MINUTES_AGO = new Date(Date.now() - 5 * 60 * 1000);
 
-const createTestOrder = ({ userId, eventId, status, createdAt, stripePaymentIntentId = null }) =>
+interface LocalOrderInput {
+  userId: string;
+  eventId: string;
+  status: OrderStatus;
+  createdAt: Date;
+  stripePaymentIntentId?: string | null;
+}
+
+const createTestOrder = ({ userId, eventId, status, createdAt, stripePaymentIntentId = null }: LocalOrderInput) =>
   prisma.order.create({
     data: { userId, eventId, totalAmount: 100, status, createdAt, stripePaymentIntentId }
   });
 
-let user;
-let event;
+let user: User;
+let event: Event;
 
 beforeEach(async () => {
   await truncateAll();
@@ -38,7 +49,7 @@ test("cancels an expired PENDING order that has a Stripe payment intent", async 
   const result = await cancelExpiredPendingOrders();
 
   const updated = await prisma.order.findUnique({ where: { id: order.id } });
-  expect(updated.status).toBe("CANCELLED");
+  expect(updated!.status).toBe("CANCELLED");
   expect(result.count).toBe(1);
   expect(paymentIntents.cancel).toHaveBeenCalledWith("pi_expired_1");
 });
@@ -55,7 +66,7 @@ test("cancels an expired PENDING order that has no Stripe payment intent, withou
   await cancelExpiredPendingOrders();
 
   const updated = await prisma.order.findUnique({ where: { id: order.id } });
-  expect(updated.status).toBe("CANCELLED");
+  expect(updated!.status).toBe("CANCELLED");
   expect(paymentIntents.cancel).not.toHaveBeenCalled();
 });
 
@@ -70,10 +81,10 @@ test("leaves a PENDING order younger than 10 minutes untouched", async () => {
   await cancelExpiredPendingOrders();
 
   const updated = await prisma.order.findUnique({ where: { id: order.id } });
-  expect(updated.status).toBe("PENDING");
+  expect(updated!.status).toBe("PENDING");
 });
 
-test.each(["SUCCESS", "CANCELLED"])(
+test.each(["SUCCESS", "CANCELLED"] as OrderStatus[])(
   "leaves an already-%s order untouched even if it is old",
   async (status) => {
     const order = await createTestOrder({
@@ -86,7 +97,7 @@ test.each(["SUCCESS", "CANCELLED"])(
     await cancelExpiredPendingOrders();
 
     const updated = await prisma.order.findUnique({ where: { id: order.id } });
-    expect(updated.status).toBe(status);
+    expect(updated!.status).toBe(status);
   }
 );
 
@@ -135,8 +146,8 @@ test("skips an order whose Stripe cancel call fails, but still cancels the rest 
   const failingOrder = await prisma.order.findUnique({ where: { id: failing.id } });
   const succeedingOrder = await prisma.order.findUnique({ where: { id: succeeding.id } });
 
-  expect(failingOrder.status).toBe("PENDING");
-  expect(succeedingOrder.status).toBe("CANCELLED");
+  expect(failingOrder!.status).toBe("PENDING");
+  expect(succeedingOrder!.status).toBe("CANCELLED");
 });
 
 test("does not cancel an order that became SUCCESS between being found and being updated", async () => {
@@ -158,5 +169,5 @@ test("does not cancel an order that became SUCCESS between being found and being
   await cancelExpiredPendingOrders();
 
   const updated = await prisma.order.findUnique({ where: { id: order.id } });
-  expect(updated.status).toBe("SUCCESS");
+  expect(updated!.status).toBe("SUCCESS");
 });

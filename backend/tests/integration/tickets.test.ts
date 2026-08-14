@@ -1,26 +1,29 @@
-const request = require("supertest");
-const app = require("../../src/app");
-const { prisma, truncateAll, disconnect } = require("../helpers/db");
-const {
+import request from "supertest";
+import app from "../../src/app";
+import { prisma, truncateAll, disconnect } from "../helpers/db";
+import {
   createTestUser,
   createTestEvent,
   createTestTicketType,
   createTestOrder,
   createAuthToken
-} = require("../helpers/fixtures");
+} from "../helpers/fixtures";
+import type { Event, Ticket, TicketType, User } from "../../generated/prisma";
 
-let buyer;
-let organiser;
-let admin;
-let event;
-let ticketType;
+let buyer: User;
+let organiser: User;
+let admin: User;
+let event: Event;
+let ticketType: TicketType;
 
-let buyerToken;
-let organiserToken;
-let adminToken;
+let buyerToken: string;
+let organiserToken: string;
+let adminToken: string;
 
 // A Ticket row only exists once an order item has been paid for.
-const issueTicket = async ({ userId, ticketTypeId, orderItemId }) =>
+interface IssueTicketInput { userId: string; ticketTypeId: string; orderItemId: string }
+
+const issueTicket = async ({ userId, ticketTypeId, orderItemId }: IssueTicketInput) =>
   prisma.ticket.create({
     data: { userId, ticketTypeId, orderItemId, isSold: true }
   });
@@ -55,7 +58,7 @@ describe("GET /api/tickets/my-tickets", () => {
     const ticket = await issueTicket({
       userId: buyer.id,
       ticketTypeId: ticketType.id,
-      orderItemId: order.orderItems[0].id
+      orderItemId: order.orderItems[0]!.id
     });
 
     const response = await request(app)
@@ -79,7 +82,7 @@ describe("GET /api/tickets/my-tickets", () => {
     await issueTicket({
       userId: organiser.id,
       ticketTypeId: ticketType.id,
-      orderItemId: order.orderItems[0].id
+      orderItemId: order.orderItems[0]!.id
     });
 
     const response = await request(app)
@@ -98,7 +101,7 @@ describe("GET /api/tickets/my-tickets", () => {
 });
 
 describe("POST /api/tickets/scan", () => {
-  let ticket;
+  let ticket: Ticket;
 
   beforeEach(async () => {
     const order = await createTestOrder({
@@ -111,7 +114,7 @@ describe("POST /api/tickets/scan", () => {
     ticket = await issueTicket({
       userId: buyer.id,
       ticketTypeId: ticketType.id,
-      orderItemId: order.orderItems[0].id
+      orderItemId: order.orderItems[0]!.id
     });
   });
 
@@ -126,7 +129,7 @@ describe("POST /api/tickets/scan", () => {
     expect(response.body.ticket.isUsed).toBe(true);
 
     const stored = await prisma.ticket.findUnique({ where: { id: ticket.id } });
-    expect(stored.isUsed).toBe(true);
+    expect(stored!.isUsed).toBe(true);
   });
 
   test("lets an ADMIN scan a ticket", async () => {
@@ -182,7 +185,7 @@ describe("POST /api/tickets/scan", () => {
     expect(response.status).toBe(403);
 
     const stored = await prisma.ticket.findUnique({ where: { id: ticket.id } });
-    expect(stored.isUsed).toBe(false);
+    expect(stored!.isUsed).toBe(false);
   });
 
   test("returns 401 without a token", async () => {

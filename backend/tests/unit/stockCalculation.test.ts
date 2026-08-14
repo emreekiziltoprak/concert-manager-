@@ -1,4 +1,4 @@
-const { calculateAvailableStock } = require("../../src/services/stockCalculation");
+import { calculateAvailableStock } from "../../src/services/stockCalculation";
 
 describe("calculateAvailableStock", () => {
   test("subtracts reserved quantity from total count", () => {

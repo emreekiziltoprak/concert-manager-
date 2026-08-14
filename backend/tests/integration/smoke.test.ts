@@ -1,5 +1,5 @@
-const { prisma, truncateAll, disconnect } = require("../helpers/db");
-const { createTestUser } = require("../helpers/fixtures");
+import { prisma, truncateAll, disconnect } from "../helpers/db";
+import { createTestUser } from "../helpers/fixtures";
 
 afterAll(disconnect);
 
@@ -10,7 +10,7 @@ test("can connect to the test database and create/truncate data", async () => {
   expect(user.id).toBeDefined();
 
   const found = await prisma.user.findUnique({ where: { id: user.id } });
-  expect(found.email).toBe("smoke-test@example.com");
+  expect(found!.email).toBe("smoke-test@example.com");
 
   await truncateAll();
 

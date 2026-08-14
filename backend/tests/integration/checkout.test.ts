@@ -1,19 +1,21 @@
-const request = require("supertest");
-const app = require("../../src/app");
-const { prisma, truncateAll, disconnect } = require("../helpers/db");
-const {
+import request from "supertest";
+import app from "../../src/app";
+import { prisma, truncateAll, disconnect } from "../helpers/db";
+import {
   createTestUser,
   createTestEvent,
   createTestTicketType,
   createAuthToken
-} = require("../helpers/fixtures");
+} from "../helpers/fixtures";
+import type { Event, User } from "../../generated/prisma";
 
 jest.mock("../../src/utils/stripeClient", () => require("../helpers/stripeMock"));
-const { paymentIntents } = require("../helpers/stripeMock");
+import stripeMock = require("../helpers/stripeMock");
+const { paymentIntents } = stripeMock;
 
-let user;
-let event;
-let token;
+let user: User;
+let event: Event;
+let token: string;
 
 beforeEach(async () => {
   await truncateAll();
@@ -41,7 +43,7 @@ test("creates an order and returns a client secret for a valid cart", async () =
   expect(response.body.clientSecret).toBe("pi_test_123_secret_abc");
 
   const order = await prisma.order.findUnique({ where: { id: response.body.orderId } });
-  expect(order.status).toBe("PENDING");
+  expect(order!.status).toBe("PENDING");
 });
 
 test("returns 400 and creates no order when stock is insufficient", async () => {

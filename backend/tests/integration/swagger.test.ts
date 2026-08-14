@@ -1,3 +1,4 @@
+import os from "os";
 /**
  * Guards the one migration failure that reports nothing.
  *
@@ -11,7 +12,7 @@
  * The same trap is still armed for the compiled build, which is why tsconfig
  * sets `removeComments: false` and the glob covers `.js` as well as `.ts`.
  */
-const specs = require("../../src/config/swagger");
+import specs from "../../src/config/swagger";
 
 describe("swagger spec", () => {
   test("is populated from the route JSDoc blocks", () => {
@@ -38,9 +39,9 @@ describe("swagger spec", () => {
     // the cheapest proof that the __dirname anchor actually holds.
     const cwd = process.cwd();
     try {
-      process.chdir(require("os").tmpdir());
+      process.chdir(os.tmpdir());
       jest.resetModules();
-      const reloaded = require("../../src/config/swagger");
+      const reloaded = require("../../src/config/swagger") as typeof specs;
       expect(Object.keys(reloaded.paths || {}).length).toBeGreaterThan(10);
     } finally {
       process.chdir(cwd);
