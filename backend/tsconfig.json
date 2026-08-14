@@ -18,9 +18,10 @@
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
 
-    // Migration complete: a stray .js under src/ or tests/ is now an error
-    // rather than something the build silently emits.
-    "allowJs": false,
+    // The point of an incremental migration: .js and .ts coexist. checkJs stays off
+    // so files that have not been converted yet are not type-checked.
+    "allowJs": true,
+    "checkJs": false,
 
     // docker-compose.dev.yml maps the inspector on 9229; without source maps
     // breakpoints land in the wrong place.
@@ -43,6 +44,6 @@
 
     "types": ["node", "jest"]
   },
-  "include": ["src/**/*", "server.ts", "tests/**/*"],
+  "include": ["src/**/*", "server.ts", "server.js", "tests/**/*"],
   "exclude": ["node_modules", "dist", "generated"]
 }
