@@ -12,10 +12,13 @@ export const toDateTimeLocal = (value) => {
   return localDate.toISOString().slice(0, 16);
 };
 
-// The API answers with {errors: [...]} for body-shape failures and {error} for
-// the business rules, so both shapes have to be unwrapped.
+// The API answers with {errors: [{field, message}]} for body-shape failures and
+// {error} for the business rules, so both shapes have to be unwrapped. Joining
+// the entries directly would render each one as "[object Object]".
 export const extractApiError = (error, fallback) =>
-  error.response?.data?.error || error.response?.data?.errors?.join(" ") || fallback;
+  error.response?.data?.error ||
+  error.response?.data?.errors?.map((entry) => entry.message).join(" ") ||
+  fallback;
 
 export const numberFromEmptyString = (value, originalValue) => (originalValue === "" ? undefined : value);
 

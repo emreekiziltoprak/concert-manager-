@@ -21,13 +21,21 @@ export type AddEventInput =
     };
 
 const addEvent = async (eventData: AddEventInput, user: { userId: string }) => {
-    const {ticketTypes, eventRole, eventRoles, organizerId, ...rest} = eventData;
+    const {ticketTypes, eventRole, eventRoles, organizerId,categoryId, ...rest} = eventData;
     const ownerId = user.userId;
-
     const eventResp = await prisma.event.create({
         data: {
             ...rest,
-            organizerId: ownerId,
+            organizer: {
+                connect: { 
+                    id: ownerId 
+                }
+            },          
+            category: {
+                connect: {
+                    id: categoryId
+                }
+            },
             ...(ticketTypes?.length ? {ticketTypes: {create: ticketTypes}} : {}),
             eventRoles: {
                 create: {userId: ownerId, assignedById: ownerId, role: "OWNER"}

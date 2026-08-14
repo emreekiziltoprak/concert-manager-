@@ -1,8 +1,15 @@
+export type ValidationErrors = {
+    field: string | number,
+    message: string
+}
+
+
+
 export class HttpError extends Error {
     readonly statusCode: number;
-    readonly errors?: string[];
+    readonly errors?: ValidationErrors[];
 
-    constructor(message: string, statusCode: number, errors?: string[]) {
+    constructor(message: string, statusCode: number, errors?: ValidationErrors[]) {
         super(message);
         this.statusCode = statusCode;
         if (errors) this.errors = errors;
@@ -22,5 +29,7 @@ export const unauthorized = (message: string): HttpError => new HttpError(messag
 
 export const forbidden = (message: string): HttpError => new HttpError(message, 403);
 
-export const validationFailed = (errors: string[]): HttpError =>
-    new HttpError(errors.join(" "), 400, errors);
+// Joining the objects directly would stringify each one as "[object Object]",
+// so the top-level message is built from the messages alone.
+export const validationFailed = (errors: ValidationErrors[]): HttpError =>
+    new HttpError(errors.map(error => error.message).join(" "), 400, errors);

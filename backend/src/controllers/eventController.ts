@@ -4,7 +4,7 @@ import * as eventService from "../services/eventService";
 import * as ticketService from "../services/ticketService";
 import * as MESSAGES from "../constants/messages";
 import { DEFAULT_TICKET_CATEGORY, isTicketCategory, type TicketCategory } from "../constants/ticketCategories";
-import { validationFailed } from "../utils/httpError";
+import { validationFailed, type ValidationErrors } from "../utils/httpError";
 import { requireUser } from "../utils/requireUser";
 
 interface TicketTypeRequestBody {
@@ -30,7 +30,7 @@ const toNumber = (value: unknown): number | null => {
 };
 
 const parseTicketTypeBody = (body: TicketTypeRequestBody): TicketTypeData => {
-    const errors: string[] = [];
+    const errors: ValidationErrors[] = [];
     const name = typeof body.name === "string" ? body.name.trim() : "";
     const price = toNumber(body.price);
     const capacity = toNumber(body.capacity);
@@ -39,19 +39,19 @@ const parseTicketTypeBody = (body: TicketTypeRequestBody): TicketTypeData => {
         : body.category;
 
     if (!name) {
-        errors.push(MESSAGES.VALIDATION.NAME_REQUIRED);
+        errors.push({ field: "name", message: MESSAGES.VALIDATION.NAME_REQUIRED });
     }
 
     if (price === null || !Number.isFinite(price) || price < 0) {
-        errors.push(MESSAGES.VALIDATION.PRICE_INVALID);
+        errors.push({ field: "price", message: MESSAGES.VALIDATION.PRICE_INVALID });
     }
 
     if (capacity === null || !Number.isInteger(capacity) || capacity <= 0) {
-        errors.push(MESSAGES.VALIDATION.CAPACITY_INVALID);
+        errors.push({ field: "capacity", message: MESSAGES.VALIDATION.CAPACITY_INVALID });
     }
 
     if (!isTicketCategory(category)) {
-        errors.push(MESSAGES.VALIDATION.CATEGORY_INVALID);
+        errors.push({ field: "category", message: MESSAGES.VALIDATION.CATEGORY_INVALID });
     }
 
     if (errors.length > 0) {
