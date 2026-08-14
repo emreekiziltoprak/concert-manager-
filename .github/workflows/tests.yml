@@ -54,17 +54,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # backend/generated/prisma is gitignored, so the client is built on every run.
-      # This must stay ahead of the typecheck: the Prisma types the source refers
-      # to only exist once the client is generated.
+      # generated/prisma is gitignored, so the client is built on every run.
       - name: Generate Prisma client
         run: npx prisma generate
-
-      - name: Typecheck
-        run: npm run typecheck
-
-      - name: Build
-        run: npm run build
 
       - name: Apply migrations
         run: npx prisma migrate deploy

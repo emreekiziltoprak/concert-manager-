@@ -1,32 +1,15 @@
-# Two stages: the compiler only exists in the first one.
-#
-# The previous single stage ran `npm ci --omit=dev`, which strips typescript --
-# so there would be nothing to build with. The builder installs everything,
-# compiles, and only dist/ crosses into the runtime image.
-
-FROM node:20-slim AS builder
-WORKDIR /app
-
-COPY package*.json ./
-RUN npm ci
-
-COPY prisma ./prisma/
-RUN npx prisma generate
-
-COPY . .
-RUN npm run build
-
 FROM node:20-slim
+
 WORKDIR /app
 
 COPY package*.json ./
 RUN npm ci --omit=dev
 
-# generated/ is needed at runtime as well: dist/src/utils/prismaClient.js
-# resolves the client through dist/generated/prisma, which the build copies.
-COPY --from=builder /app/generated ./generated/
-COPY --from=builder /app/prisma ./prisma/
-COPY --from=builder /app/dist ./dist/
+COPY prisma ./prisma/
+COPY generated ./generated/
+RUN npx prisma generate
+
+COPY . .
 
 EXPOSE 3000
 
