@@ -14499,6 +14499,7 @@ export namespace Prisma {
 
   export type TicketTypeWhereUniqueInput = Prisma.AtLeast<{
     id?: string
+    eventId_name?: TicketTypeEventIdNameCompoundUniqueInput
     AND?: TicketTypeWhereInput | TicketTypeWhereInput[]
     OR?: TicketTypeWhereInput[]
     NOT?: TicketTypeWhereInput | TicketTypeWhereInput[]
@@ -14512,7 +14513,7 @@ export namespace Prisma {
     event?: XOR<EventScalarRelationFilter, EventWhereInput>
     tickets?: TicketListRelationFilter
     orderItems?: OrderItemListRelationFilter
-  }, "id">
+  }, "id" | "eventId_name">
 
   export type TicketTypeOrderByWithAggregationInput = {
     id?: SortOrder
@@ -16247,6 +16248,11 @@ export namespace Prisma {
 
   export type OrderItemOrderByRelationAggregateInput = {
     _count?: SortOrder
+  }
+
+  export type TicketTypeEventIdNameCompoundUniqueInput = {
+    eventId: string
+    name: string
   }
 
   export type TicketTypeCountOrderByAggregateInput = {

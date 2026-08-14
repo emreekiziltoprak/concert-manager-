@@ -18,7 +18,8 @@ const createTestUser = (overrides = {}) => {
     data: {
       email: overrides.email || `test-user-${unique}@example.com`,
       passwordHash: overrides.passwordHash || "$2a$10$dummyHashForTestsOnly",
-      fullName: overrides.fullName || `Test User ${unique}`
+      fullName: overrides.fullName || `Test User ${unique}`,
+      role: overrides.role || "USER"
     }
   });
 };
@@ -60,6 +61,44 @@ const createTestTicketType = async (overrides = {}) => {
   });
 };
 
+const createTestEventRole = ({ eventId, userId, assignedById, role = "CO_ORGANISER" }) =>
+  prisma.eventRole.create({
+    data: {
+      eventId,
+      userId,
+      assignedById: assignedById || userId,
+      role
+    }
+  });
+
+// An order plus its single order item, which is what makes a ticket type
+// "reserved" (PENDING/SUCCESS) and blocks a hard delete.
+const createTestOrder = ({
+  userId,
+  eventId,
+  ticketTypeId,
+  quantity = 1,
+  status = "PENDING",
+  unitPrice = 100
+}) =>
+  prisma.order.create({
+    data: {
+      userId,
+      eventId,
+      status,
+      totalAmount: unitPrice * quantity,
+      orderItems: {
+        create: {
+          ticketTypeId,
+          quantity,
+          unitPrice,
+          totalPrice: unitPrice * quantity
+        }
+      }
+    },
+    include: { orderItems: true }
+  });
+
 // Mirrors the production token payload (see authService.js) so role-gated
 // routes authorize test users the same way they authorize real ones.
 const createAuthToken = (user) =>
@@ -73,5 +112,7 @@ module.exports = {
   createTestUser,
   createTestEvent,
   createTestTicketType,
+  createTestEventRole,
+  createTestOrder,
   createAuthToken
 };

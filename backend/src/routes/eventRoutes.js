@@ -117,8 +117,122 @@ router.get("/:eventId", authMiddleware, eventController.getEventById);
 router.post(
   "/:eventId/ticket-types",
   authMiddleware,
-  authorizeEventRole("OWNER", "CO_ORGANISER"),
+  authorizeEventRole(["OWNER", "CO_ORGANISER"]),
   eventController.addTicketTypeToEvent
+);
+
+/**
+ * @swagger
+ * /api/events/{eventId}/ticket-types/{ticketTypeId}:
+ *   put:
+ *     summary: Update a ticket type of an event
+ *     tags: [Events]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: eventId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Event ID
+ *       - in: path
+ *         name: ticketTypeId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Ticket type ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - price
+ *               - capacity
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: VIP
+ *               price:
+ *                 type: number
+ *                 example: 250
+ *               capacity:
+ *                 type: integer
+ *                 example: 100
+ *               category:
+ *                 type: string
+ *                 enum:
+ *                   - STANDARD
+ *                   - CHILD
+ *                   - STUDENT
+ *                   - EARLY_BID
+ *                   - FREE
+ *                 example: STANDARD
+ *               isActive:
+ *                 type: boolean
+ *                 example: true
+ *     responses:
+ *       200:
+ *         description: Ticket type updated successfully
+ *       400:
+ *         description: Invalid request body, or capacity exceeds the remaining event capacity
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Event or ticket type not found
+ *       409:
+ *         description: Duplicate name/category, or capacity below the already reserved count
+ */
+router.put(
+  "/:eventId/ticket-types/:ticketTypeId",
+  authMiddleware,
+  authorizeEventRole(["OWNER", "CO_ORGANISER"]),
+  eventController.updateTicketTypeOfEvent
+);
+
+/**
+ * @swagger
+ * /api/events/{eventId}/ticket-types/{ticketTypeId}:
+ *   delete:
+ *     summary: Delete a ticket type of an event
+ *     tags: [Events]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: eventId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Event ID
+ *       - in: path
+ *         name: ticketTypeId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Ticket type ID
+ *     responses:
+ *       200:
+ *         description: Ticket type deleted successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Event or ticket type not found
+ *       409:
+ *         description: Ticket type is referenced by existing orders or tickets
+ */
+router.delete(
+  "/:eventId/ticket-types/:ticketTypeId",
+  authMiddleware,
+  authorizeEventRole(["OWNER", "CO_ORGANISER"]),
+  eventController.deleteTicketTypeOfEvent
 );
 
 /**

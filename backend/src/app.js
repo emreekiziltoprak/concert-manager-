@@ -8,6 +8,7 @@ const categoryRoutes = require("./routes/categoryRoutes");
 const eventRoutes = require("./routes/eventRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const userRoutes = require("./routes/userRoutes");
+const errorHandler = require("./middlewares/errorHandler");
 
 const app = express();
 
@@ -27,5 +28,8 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 app.get("/", (req, res) => {
   res.json({ message: "Event api is working" });
 });
+
+// Must stay last: an error handler only sees what the routes above pass it.
+app.use(errorHandler);
 
 module.exports = app;
