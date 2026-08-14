@@ -1,28 +1,33 @@
-import {
-  Card,
-  CardContent,
-  CardMedia,
-  Typography,
-  Stack,
-  Chip,
-  Box,
-  Button,
-  IconButton,
-} from "@mui/material";
+import { Chip, IconButton, Button } from "@mui/material";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useNavigate } from "react-router";
-import api from "../config/axios";
+import { deleteEvent } from "../api/events";
 
-export default function EventCard({ event, categories, onEventUpdated, onEditClick }) {
+const getStatusColor = (status) => {
+  switch (status) {
+    case "PUBLISHED":
+      return "success";
+    case "CANCELLED":
+      return "error";
+    case "COMPLETED":
+      return "info";
+    case "ARCHIVED":
+      return "warning";
+    default:
+      return "default";
+  }
+};
+
+export default function EventCard({ event, onEventUpdated, onEditClick }) {
   const navigate = useNavigate();
-  
+
   const handleDelete = async () => {
     if (!window.confirm("Are you sure you want to delete this event?")) return;
     try {
-      await api.delete("/events", { data: { eventId: event.id } });
+      await deleteEvent(event.id);
       onEventUpdated?.();
     } catch (error) {
       console.error(error);
@@ -30,111 +35,52 @@ export default function EventCard({ event, categories, onEventUpdated, onEditCli
     }
   };
 
-  const handleEditClick = () => {
-    onEditClick?.(event);
-  };
-
-  const handleDetailClick = () => {
-    navigate(`/event/${event.id}`);
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "PUBLISHED":
-        return "success";
-      case "CANCELLED":
-        return "error";
-      case "COMPLETED":
-        return "info";
-      case "ARCHIVED":
-        return "warning";
-      default:
-        return "default";
-    }
-  };
+  const handleEditClick = () => onEditClick?.(event);
+  const handleDetailClick = () => navigate(`/event/${event.id}`);
 
   return (
-    <Card
-      sx={{
-        borderRadius: 3,
-        overflow: "hidden",
-        boxShadow: 3,
-        transition: "0.2s",
-        "&:hover": { transform: "scale(1.02)", boxShadow: 6 },
-      }}
-    >
-      {/* IMAGE */}
-      <CardMedia
-        component="img"
-        height="180"
-        sx={{objectFit: "contain"}}
-        image={
-          event.coverImageUrl ||
-          "https://via.placeholder.com/400x200?text=Event"
-        }
-        alt={event.title}
-      />
+    <article className="event-card">
+      <div className="event-card__media">
+        <img
+          src={event.coverImageUrl || "https://placehold.co/256x176/e5e7eb/6b7280?text=Event"}
+          alt={event.title}
+        />
+      </div>
 
-      <CardContent>
-        {/* TITLE + STATUS */}
-        <Stack direction="row" justifyContent="space-between" alignItems="center">
-          <Typography variant="h6" fontWeight="bold">
-            {event.title}
-          </Typography>
+      <div className="event-card__body">
+        <span className="event-card__title">{event.title}</span>
 
-          <Chip
-            label={event.status}
-            size="small"
-            color={getStatusColor(event.status)}
-          />
-        </Stack>
+        <div className="event-card__meta">
+          <span className="event-card__meta-row">
+            <LocationOnIcon />
+            {event.address}
+          </span>
+          <span className="event-card__meta-row">
+            <CalendarMonthIcon />
+            {new Date(event.startDate).toLocaleString("tr-TR", {
+              day: "2-digit",
+              month: "short",
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </span>
+          <span className="event-card__meta-row">
+            <Chip label={event.status} size="small" color={getStatusColor(event.status)} className="event-card__status" />
+          </span>
+        </div>
 
-        {/* DESCRIPTION */}
-        <Typography
-          variant="body2"
-          color="text.secondary"
-          sx={{ mt: 1, mb: 2 }}
-        >
-          {event.description}
-        </Typography>
-
-        {/* DATE */}
-        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-          <CalendarMonthIcon fontSize="small" />
-          <Typography variant="body2">
-            {new Date(event.startDate).toLocaleString("tr-TR")}
-          </Typography>
-        </Stack>
-
-        {/* ADDRESS */}
-        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
-          <LocationOnIcon fontSize="small" />
-          <Typography variant="body2">{event.address}</Typography>
-        </Stack>
-
-        {/* FOOTER */}
-        <Box display="flex" justifyContent="space-between" alignItems="center">
-          <Typography variant="caption" color="text.secondary">
-            Capacity: {event.capacity}
-          </Typography>
-
-          <Stack direction="row" spacing={1}>
-            <IconButton
-              size="small"
-              color="primary"
-              onClick={handleEditClick}
-            >
-              <EditIcon fontSize="small" />
-            </IconButton>
-            <IconButton size="small" color="error" onClick={handleDelete}>
-              <DeleteIcon fontSize="small" />
-            </IconButton>
-<Button size="small" variant="contained" onClick={handleDetailClick}>
-               Detay
-             </Button>
-          </Stack>
-        </Box>
-      </CardContent>
-    </Card>
+        <div className="event-card__actions">
+          <IconButton size="small" className="icon-action" onClick={handleEditClick} aria-label="Edit event">
+            <EditIcon fontSize="small" />
+          </IconButton>
+          <IconButton size="small" className="icon-action icon-action--danger" onClick={handleDelete} aria-label="Delete event">
+            <DeleteIcon fontSize="small" />
+          </IconButton>
+          <Button size="small" variant="contained" onClick={handleDetailClick}>
+            Detay
+          </Button>
+        </div>
+      </div>
+    </article>
   );
 }

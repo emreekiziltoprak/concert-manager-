@@ -1,13 +1,13 @@
 import React from "react";
 import { Elements } from "@stripe/react-stripe-js";
 import { useLocation, Navigate } from "react-router-dom";
-import { Box, Paper, Typography } from "@mui/material";
+import { Typography } from "@mui/material";
 import stripePromise from "../config/stripe";
 import CheckoutForm from "../components/CheckoutForm";
 
 export default function CheckoutPage() {
   const location = useLocation();
-  
+
   // Veriler EventDetail sayfasındaki butona tıklandığında hazırlanıp buraya gönderiliyor
   const { clientSecret, orderId } = location.state || {};
 
@@ -17,9 +17,9 @@ export default function CheckoutPage() {
   }
 
   return (
-    <Box display="flex" justifyContent="center" py={4}>
-      <Paper sx={{ p: 4, maxWidth: 500, width: "100%" }}>
-        <Typography variant="h5" mb={3}>
+    <div className="centered-panel">
+      <div className="centered-panel__card">
+        <Typography variant="h5" className="section__title">
           Ödemenizi Tamamlayın
         </Typography>
         <Elements
@@ -33,7 +33,7 @@ export default function CheckoutPage() {
         >
           <CheckoutForm orderId={orderId} />
         </Elements>
-      </Paper>
-    </Box>
+      </div>
+    </div>
   );
 }

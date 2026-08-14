@@ -1,8 +1,3 @@
-import './App.css'
-
-
-import { usePageStore, pages } from './store/pageStore'
-import  Header from './page/Header'
 import Categories from './page/Categories'
 import Users from './page/Users'
 import Events from './page/Events'
@@ -18,15 +13,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import { AuthProvider } from './authContext/authcontext'
 import { CartProvider } from './context/cartContext'
 
-const pageComponents = {
-  [pages.CATEGORIES]: <Categories />,
-  [pages.USERS]: <Users />,
-  [pages.EVENTS]: <Events />,
-}
-
 function App() {
-  const currentPage = usePageStore((state) => state.activePage)
-
   return (
     <AuthProvider>
     <CartProvider>

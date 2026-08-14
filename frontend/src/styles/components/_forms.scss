@@ -1,0 +1,44 @@
+@use '../abstracts/variables' as v;
+@use '../abstracts/mixins' as m;
+
+.form-panel {
+  @include m.card;
+  padding: v.$space-5;
+
+  @include m.respond(sm) {
+    padding: v.$space-6;
+  }
+
+  &__title {
+    font-size: v.$fs-lg;
+    margin-bottom: v.$space-5;
+  }
+}
+
+.search-field {
+  flex: 1;
+  max-width: 420px;
+
+  .MuiOutlinedInput-root {
+    background: #fff;
+    border-radius: v.$radius-full;
+  }
+}
+
+.field-error {
+  color: v.$color-error;
+  font-size: v.$fs-sm;
+  margin-top: v.$space-2;
+}
+
+.alert-spacing {
+  margin-bottom: v.$space-4;
+}
+
+.divider-spacing {
+  margin-block: v.$space-4;
+}
+
+.btn-spinner {
+  margin-right: v.$space-2;
+}

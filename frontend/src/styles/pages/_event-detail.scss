@@ -1,0 +1,73 @@
+@use '../abstracts/variables' as v;
+@use '../abstracts/mixins' as m;
+
+.event-detail {
+  &__back {
+    margin-bottom: v.$space-4;
+  }
+
+  &__card {
+    @include m.card;
+    overflow: hidden;
+  }
+
+  &__media {
+    width: 100%;
+    height: 280px;
+    object-fit: cover;
+    background: v.$color-bg-subtle;
+  }
+
+  &__body {
+    padding: v.$space-6;
+  }
+
+  &__head {
+    @include m.flex($justify: space-between, $align: flex-start, $gap: v.$space-3);
+    margin-bottom: v.$space-3;
+    flex-wrap: wrap;
+  }
+
+  &__description {
+    margin-bottom: v.$space-4;
+  }
+
+  &__meta {
+    @include m.flex($gap: v.$space-5);
+    flex-wrap: wrap;
+    color: v.$color-text-secondary;
+    margin-bottom: v.$space-3;
+  }
+
+  &__meta-row {
+    @include m.flex($gap: v.$space-1);
+
+    svg {
+      color: v.$color-text-muted;
+    }
+  }
+
+  &__section-title {
+    margin-bottom: v.$space-4;
+  }
+
+  &__ticket-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: v.$space-4;
+
+    @include m.respond(sm) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    @include m.respond(md) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  &__actions {
+    @include m.flex($justify: flex-end, $gap: v.$space-2);
+    flex-wrap: wrap;
+    margin-top: v.$space-6;
+  }
+}

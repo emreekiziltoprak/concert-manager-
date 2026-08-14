@@ -4,12 +4,7 @@ import {
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
-import {
-  Button,
-  Alert,
-  Box,
-  CircularProgress,
-} from "@mui/material";
+import { Button, Alert, CircularProgress } from "@mui/material";
 
 export default function CheckoutForm({ orderId }) {
   const stripe = useStripe();
@@ -42,27 +37,20 @@ export default function CheckoutForm({ orderId }) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <Box mb={3}>
+      <div className="stripe-element-wrapper">
         <PaymentElement />
-      </Box>
+      </div>
 
       {errorMessage && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <Alert severity="error" className="alert-spacing">
           {errorMessage}
         </Alert>
       )}
 
-      <Button
-        type="submit"
-        variant="contained"
-        color="primary"
-        size="large"
-        fullWidth
-        disabled={!stripe || isProcessing}
-      >
+      <Button type="submit" variant="contained" color="primary" size="large" fullWidth disabled={!stripe || isProcessing}>
         {isProcessing ? (
           <>
-            <CircularProgress size={20} sx={{ mr: 1 }} />
+            <CircularProgress size={20} className="btn-spinner" />
             Processing...
           </>
         ) : (

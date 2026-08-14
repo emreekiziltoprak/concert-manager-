@@ -1,0 +1,60 @@
+@use '../abstracts/variables' as v;
+@use '../abstracts/mixins' as m;
+
+.cart-page {
+  &__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: v.$space-5;
+
+    @include m.respond(md) {
+      grid-template-columns: 2fr 1fr;
+    }
+  }
+
+  &__items {
+    display: flex;
+    flex-direction: column;
+    gap: v.$space-3;
+  }
+
+  &__summary {
+    @include m.card;
+    padding: v.$space-5;
+    align-self: start;
+    position: sticky;
+    top: v.$space-5;
+    display: flex;
+    flex-direction: column;
+    gap: v.$space-3;
+  }
+
+  &__summary-row {
+    @include m.flex($justify: space-between);
+  }
+
+  &__empty {
+    margin-bottom: v.$space-4;
+  }
+}
+
+.centered-panel {
+  @include m.flex($justify: center, $align: center);
+  min-height: 60vh;
+  padding: v.$space-5;
+
+  &__card {
+    @include m.card;
+    padding: v.$space-6;
+    max-width: 480px;
+    width: 100%;
+    text-align: center;
+  }
+}
+
+// Compound selector beats MuiSvgIcon's own fontSize-variant class on
+// specificity, so this holds without !important.
+.status-icon.MuiSvgIcon-root {
+  font-size: 64px;
+  margin-bottom: v.$space-3;
+}

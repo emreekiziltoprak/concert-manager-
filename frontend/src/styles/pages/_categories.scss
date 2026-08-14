@@ -1,0 +1,34 @@
+@use '../abstracts/variables' as v;
+@use '../abstracts/mixins' as m;
+
+.categories-page {
+  max-width: 440px;
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-6;
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: v.$space-4;
+  }
+
+  &__list-title {
+    margin-bottom: v.$space-4;
+  }
+
+  &__item {
+    @include m.flex($justify: space-between, $gap: v.$space-3);
+    padding: v.$space-3 0;
+    border-bottom: 1px solid v.$color-border;
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  &__item-info {
+    @include m.flex($gap: v.$space-3);
+  }
+}

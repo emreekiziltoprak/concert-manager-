@@ -1,60 +1,34 @@
-import React, { useEffect, useState } from "react";
-import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Container,
-  Grid,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
+import React from "react";
+import { Button, Typography } from "@mui/material";
 import { useNavigate } from "react-router";
 import { useCart } from "../context/cartContext";
-import api from "../config/axios";
+import { useEvents } from "../hooks/useEvents";
 
 export default function MyCart() {
   const navigate = useNavigate();
   const { cartItems, removeFromCart, clearCart } = useCart();
-  const [cartData, setCartData] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { events, loading: eventsLoading } = useEvents();
+  const loading = cartItems.length > 0 && eventsLoading;
 
-  useEffect(() => {
-    const fetchCartData = async () => {
-      if (cartItems.length === 0) {
-        setLoading(false);
-        return;
-      }
+  const cartData = cartItems.map(item => {
+    const event = events.find(e => e.id === item.eventId);
+    const ticketType = event?.ticketTypes?.find(t => t.id === item.ticketTypeId);
 
-      try {
-        const eventIds = [...new Set(cartItems.map(item => item.eventId))];
-        const eventsData = {};
-
-        for (const eventId of eventIds) {
-          const response = await api.get(`/events/${eventId}`);
-          eventsData[eventId] = response.data.event;
-        }
-
-        const enrichedCart = cartItems.map(item => ({
-          ...item,
-          event: eventsData[item.eventId],
-          ticketType: eventsData[item.eventId]?.ticketTypes?.find(t => t.id === item.ticketTypeId)
-        }));
-
-        setCartData(enrichedCart);
-      } catch (error) {
-        console.error("Failed to fetch cart data:", error);
-      } finally {
-        setLoading(false);
-      }
+    return {
+      ...item,
+      event,
+      ticketType,
+      // The event or the ticket type is gone, or it was deactivated.
+      // Cart entries live in localStorage forever, so this is reachable.
+      unavailable: !ticketType || ticketType.isActive === false
     };
+  });
 
-    fetchCartData();
-  }, [cartItems]);
+  const unavailableItems = cartData.filter(item => item.unavailable);
 
   const totalAmount = cartData.reduce((sum, item) => {
-    return sum + (item.ticketType?.price || 0) * item.count;
+    if (item.unavailable) return sum;
+    return sum + Number(item.ticketType?.price ?? 0) * item.count;
   }, 0);
 
   const handleCheckout = () => {
@@ -62,9 +36,17 @@ export default function MyCart() {
       ticketTypeId: item.ticketTypeId,
       count: item.count
     }));
-    
+
     if (cartItemsArray.length === 0) {
       alert("Sepetiniz boş");
+      return;
+    }
+
+    // Sending these would fail at the API with "ticket type cant be found".
+    // Dropping them silently would change the order behind the user's back, so
+    // ask instead.
+    if (unavailableItems.length > 0) {
+      alert("Sepetinizde artık satışta olmayan biletler var. Devam etmek için onları kaldırın.");
       return;
     }
 
@@ -73,80 +55,101 @@ export default function MyCart() {
   };
 
   if (loading) {
-    return <Container sx={{ py: 4 }}><Typography>Loading...</Typography></Container>;
+    return (
+      <div className="page-container">
+        <Typography>Loading...</Typography>
+      </div>
+    );
   }
 
   if (cartData.length === 0) {
     return (
-      <Container sx={{ py: 4, textAlign: "center" }}>
-        <Typography variant="h5" sx={{ mb: 2 }}>Sepetiniz Boş</Typography>
-        <Button variant="contained" onClick={() => navigate("/events")}>
-          Etkinliklere Dön
-        </Button>
-      </Container>
+      <div className="centered-panel">
+        <div className="centered-panel__card">
+          <Typography variant="h5" className="cart-page__empty">Sepetiniz Boş</Typography>
+          <Button variant="contained" onClick={() => navigate("/events")}>
+            Etkinliklere Dön
+          </Button>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Container sx={{ py: 4 }}>
-      <Typography variant="h4" fontWeight="bold" sx={{ mb: 3 }}>
-        Sepetim
-      </Typography>
+    <div className="page-container">
+      <div className="page-header">
+        <Typography variant="h3" className="page-header__title">
+          Sepetim
+        </Typography>
+      </div>
 
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={8}>
-          {cartData.map((item, index) => (
-            <Card key={`${item.eventId}-${item.ticketTypeId}`} sx={{ mb: 2 }}>
-              <CardContent>
-                <Stack direction="row" justifyContent="space-between" alignItems="center">
-                  <Box>
-                    <Typography variant="h6">{item.event?.title}</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {item.ticketType?.name} - {item.ticketType?.price} ₺ x {item.count}
+      <div className="cart-page__grid">
+        <div className="cart-page__items">
+          {cartData.map((item) => (
+            <div
+              className={`ticket-line${item.unavailable ? " ticket-line--unavailable" : ""}`}
+              key={`${item.eventId}-${item.ticketTypeId}`}
+            >
+              <div className="ticket-line__row">
+                <div>
+                  <Typography className="ticket-line__title">
+                    {item.event?.title || "Etkinlik bulunamadı"}
+                  </Typography>
+                  {item.unavailable ? (
+                    <Typography variant="body2" color="error" className="ticket-line__subtitle">
+                      Bu bilet artık satışta değil.
                     </Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant="h6" color="primary">
-                      {(item.ticketType?.price * item.count).toFixed(2)} ₺
+                  ) : (
+                    <Typography variant="body2" color="text.secondary" className="ticket-line__subtitle">
+                      {item.ticketType.name} - {item.ticketType.price} ₺ x {item.count}
                     </Typography>
-                    <Button 
-                      size="small" 
-                      color="error" 
-                      onClick={() => removeFromCart(item.ticketTypeId, item.eventId)}
-                    >
-                      Sil
-                    </Button>
-                  </Box>
-                </Stack>
-              </CardContent>
-            </Card>
+                  )}
+                </div>
+                <div>
+                  {!item.unavailable && (
+                    <Typography className="ticket-line__price">
+                      {(Number(item.ticketType.price) * item.count).toFixed(2)} ₺
+                    </Typography>
+                  )}
+                  <Button size="small" color="error" onClick={() => removeFromCart(item.ticketTypeId, item.eventId)}>
+                    Sil
+                  </Button>
+                </div>
+              </div>
+            </div>
           ))}
-        </Grid>
+        </div>
 
-        <Grid item xs={12} md={4}>
-          <Card sx={{ position: "sticky", top: 20 }}>
-            <CardContent>
-              <Typography variant="h6" sx={{ mb: 2 }}>
-                Özet
-              </Typography>
-              <Stack spacing={1} sx={{ mb: 2 }}>
-                <Stack direction="row" justifyContent="space-between">
-                  <Typography>Toplam:</Typography>
-                  <Typography fontWeight="bold">{totalAmount.toFixed(2)} ₺</Typography>
-                </Stack>
-              </Stack>
-              <Stack spacing={1}>
-                <Button variant="contained" fullWidth onClick={handleCheckout}>
-                  Ödemeye Geç
-                </Button>
-                <Button variant="outlined" fullWidth onClick={() => navigate("/events")}>
-                  Etkinliklere Dön
-                </Button>
-              </Stack>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
-    </Container>
+        <div className="cart-page__summary">
+          <Typography variant="h6" className="section__title">
+            Özet
+          </Typography>
+
+          <div className="cart-page__summary-row">
+            <Typography>Toplam:</Typography>
+            <Typography fontWeight="bold">{totalAmount.toFixed(2)} ₺</Typography>
+          </div>
+
+          {unavailableItems.length > 0 && (
+            <Typography variant="body2" className="field-error">
+              Satışta olmayan {unavailableItems.length} bilet var. Ödemeye geçmek için
+              onları sepetten kaldırın.
+            </Typography>
+          )}
+
+          <Button
+            variant="contained"
+            fullWidth
+            onClick={handleCheckout}
+            disabled={unavailableItems.length > 0}
+          >
+            Ödemeye Geç
+          </Button>
+          <Button variant="outlined" fullWidth onClick={() => navigate("/events")}>
+            Etkinliklere Dön
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }

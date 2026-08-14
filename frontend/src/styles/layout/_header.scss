@@ -1,0 +1,91 @@
+@use '../abstracts/variables' as v;
+@use '../abstracts/mixins' as m;
+
+.app-header {
+  background: v.$color-primary;
+
+  &__bar {
+    @include m.flex($align: center, $justify: space-between, $gap: v.$space-4);
+    max-width: v.$container-max;
+    margin-inline: auto;
+    padding: v.$space-3 v.$space-5;
+    min-height: v.$header-height;
+  }
+
+  &__logo {
+    font-size: v.$fs-lg;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.01em;
+
+    &-accent {
+      color: #cfe0ff;
+    }
+  }
+
+  &__menu-btn {
+    display: inline-flex;
+    margin-right: v.$space-2;
+
+    @include m.respond(md) {
+      display: none;
+    }
+  }
+
+  &__nav {
+    display: none;
+    align-items: center;
+    gap: v.$space-1;
+    flex: 1;
+    padding-inline: v.$space-5;
+
+    @include m.respond(md) {
+      display: flex;
+    }
+  }
+
+  &__nav-link {
+    color: rgba(255, 255, 255, 0.78);
+    font-weight: 600;
+    font-size: v.$fs-sm;
+    padding: v.$space-2 v.$space-3;
+    border-radius: v.$radius-sm;
+    transition: background 0.15s ease, color 0.15s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+    }
+
+    &.active {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.16);
+    }
+  }
+
+  &__actions {
+    @include m.flex($gap: v.$space-2);
+  }
+
+  &__cart-btn {
+    display: inline-flex;
+
+    @include m.respond(md) {
+      display: none;
+    }
+  }
+
+  // Compound selector (class + MUI's own class) beats MuiButton's
+  // single-class internal rules on specificity, so the override holds
+  // regardless of emotion's style-insertion order — no !important needed.
+  &__logout.MuiButton-outlined {
+    white-space: nowrap;
+    border-color: rgba(255, 255, 255, 0.35);
+    color: #fff;
+
+    &:hover {
+      border-color: #fff;
+      background: rgba(255, 255, 255, 0.12);
+    }
+  }
+}

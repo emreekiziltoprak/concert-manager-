@@ -1,0 +1,11 @@
+@use '../abstracts/variables' as v;
+
+// Stripe's PaymentElement renders into its own iframe, so it can only be
+// themed through the `appearance` option passed to <Elements> — this just
+// keeps the wrapper it sits in consistent with the rest of the form layer.
+.stripe-element-wrapper {
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-md;
+  padding: v.$space-4;
+  margin-bottom: v.$space-4;
+}

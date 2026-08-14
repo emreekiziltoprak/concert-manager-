@@ -1,23 +1,13 @@
 import { useState } from "react";
-import {
-  Container,
-  Paper,
-  TextField,
-  Typography,
-  Button,
-  Box,
-  Stack,
-  Divider,
-} from "@mui/material";
-import axios from "axios";
-import api from "../config/axios";
+import { TextField, Typography, Button, Divider } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../authContext/authcontext";
+import { login as loginRequest, register as registerRequest } from "../api/auth";
 
 function AuthPage() {
   const nav = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
-  const {login} = useAuth();
+  const { login } = useAuth();
   const [form, setForm] = useState({
     fullName: "",
     email: "",
@@ -29,117 +19,61 @@ function AuthPage() {
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
-    const url = isLogin ? "/auth/login" : "/auth/register";
 
     const body = isLogin
       ? { email: form.email, password: form.password }
       : form;
 
-    await api.post(url, body).then((resp)=> {
-      if(resp.data?.token)
-      {
+    const request = isLogin ? loginRequest(body) : registerRequest(body);
+
+    await request.then((resp) => {
+      if (resp.data?.token) {
         login(resp.data.token);
         localStorage.setItem("user", JSON.stringify(resp.data.user));
         nav("/");
-
       }
-    })
+    });
   };
 
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-        padding: 2,
-      }}
-    >
-      <Container maxWidth="xs">
-        <Paper
-          elevation={10}
-          sx={{
-            p: 4,
-            borderRadius: 4,
-            backdropFilter: "blur(10px)",
-          }}
-        >
-          <Stack spacing={2}>
-            <Typography variant="h4" fontWeight="bold" textAlign="center">
-              {isLogin ? "Welcome Back" : "Create Account"}
-            </Typography>
+    <div className="login-page">
+      <div className="login-page__card">
+        <Typography variant="h4" className="login-page__title">
+          {isLogin ? "Welcome Back" : "Create Account"}
+        </Typography>
 
-            <Typography
-              variant="body2"
-              textAlign="center"
-              color="text.secondary"
-            >
-              {isLogin
-                ? "Login to continue to your account"
-                : "Register to start using the app"}
-            </Typography>
+        <Typography variant="body2" color="text.secondary" className="login-page__subtitle">
+          {isLogin ? "Login to continue to your account" : "Register to start using the app"}
+        </Typography>
 
-            <Divider />
+        <Divider className="divider-spacing" />
 
-            <Stack spacing={2}>
-              {!isLogin && (
-                <TextField
-                  label="Full Name"
-                  name="fullName"
-                  value={form.fullName}
-                  onChange={handleChange}
-                  fullWidth
-                />
-              )}
+        <form className="login-page__form" onSubmit={handleSubmit}>
+          {!isLogin && (
+            <TextField label="Full Name" name="fullName" value={form.fullName} onChange={handleChange} fullWidth />
+          )}
 
-              <TextField
-                label="Email"
-                name="email"
-                value={form.email}
-                onChange={handleChange}
-                fullWidth
-              />
+          <TextField label="Email" name="email" value={form.email} onChange={handleChange} fullWidth />
 
-              <TextField
-                label="Password"
-                name="password"
-                type="password"
-                value={form.password}
-                onChange={handleChange}
-                fullWidth
-              />
+          <TextField
+            label="Password"
+            name="password"
+            type="password"
+            value={form.password}
+            onChange={handleChange}
+            fullWidth
+          />
 
-              <Button
-                variant="contained"
-                size="large"
-                sx={{
-                  py: 1.2,
-                  fontWeight: "bold",
-                  borderRadius: 2,
-                  textTransform: "none",
-                  background: "linear-gradient(90deg, #667eea, #764ba2)",
-                }}
-                onClick={handleSubmit}
-              >
-                {isLogin ? "Login" : "Sign Up"}
-              </Button>
+          <Button type="submit" variant="contained" size="large">
+            {isLogin ? "Login" : "Sign Up"}
+          </Button>
 
-              <Button
-                onClick={() => setIsLogin(!isLogin)}
-                sx={{ textTransform: "none" }}
-              >
-                {isLogin
-                  ? "Don't have an account? Sign up"
-                  : "Already have an account? Login"}
-              </Button>
-            </Stack>
-          </Stack>
-        </Paper>
-      </Container>
-    </Box>
+          <Button onClick={() => setIsLogin(!isLogin)}>
+            {isLogin ? "Don't have an account? Sign up" : "Already have an account? Login"}
+          </Button>
+        </form>
+      </div>
+    </div>
   );
 }
 
