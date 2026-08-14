@@ -1,0 +1,196 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.resumePendingOrder = exports.cancelPendingOrder = exports.matchesCart = exports.findPendingOrder = exports.createPaymentIntent = exports.completePayment = exports.createOrder = void 0;
+const prisma = require("../utils/prismaClient");
+const stripe = require("../utils/stripeClient");
+const stockCalculation_1 = require("./stockCalculation");
+const errorMessage_1 = require("../utils/errorMessage");
+const createOrder = async (userId, eventId, cartItems) => {
+    return await prisma.$transaction(async (tx) => {
+        let totalAmountData = 0;
+        const orderItemsData = [];
+        for (const ticket of cartItems) {
+            const ticketTypes = await tx.$queryRaw `
+        SELECT * FROM "ticket_types" WHERE id = ${ticket.ticketTypeId}
+        AND "eventId" = ${eventId} FOR UPDATE`;
+            const ticketType = ticketTypes[0];
+            if (!ticketType)
+                throw new Error("ticket type  cant be found");
+            //find how many tickets are sold or reserved
+            const aggregations = await tx.orderItem.aggregate({
+                where: {
+                    ticketTypeId: ticketType.id,
+                    order: {
+                        status: { in: ["PENDING", "SUCCESS"] }
+                    }
+                },
+                _sum: {
+                    quantity: true
+                }
+            });
+            const availableTickets = (0, stockCalculation_1.calculateAvailableStock)(ticketType.totalCount, aggregations._sum.quantity || 0);
+            //if the available tickets arent enough throw error
+            if (availableTickets < ticket.count)
+                throw new Error("there is no enough tickets");
+            // `price` is `Decimal @db.Decimal(10, 2)`. `ticketType.price * ticket.count`
+            // works today only because JS coerces the Decimal through its string form
+            // first; TypeScript rejects arithmetic on a non-number. Number() performs
+            // exactly that coercion explicitly, and is correct whether the driver
+            // adapter hands back a Decimal, a string or a number. The values written
+            // below are numerically unchanged.
+            const unitPrice = Number(ticketType.price);
+            totalAmountData += unitPrice * ticket.count;
+            //add each ticket type for creating orderItemsData
+            orderItemsData.push({
+                ticketTypeId: ticket.ticketTypeId,
+                quantity: ticket.count,
+                unitPrice: unitPrice,
+                totalPrice: unitPrice * ticket.count
+            });
+        }
+        const order = await tx.order.create({
+            data: {
+                userId: userId,
+                eventId: eventId,
+                totalAmount: totalAmountData,
+                status: "PENDING",
+                orderItems: {
+                    create: orderItemsData
+                }
+            }
+        });
+        return order;
+    });
+};
+exports.createOrder = createOrder;
+const completePayment = async (orderId) => {
+    const order = await prisma.order.findUnique({ where: { id: orderId },
+        include: { orderItems: true, user: true }
+    });
+    if (!order)
+        throw new Error("order cant be found");
+    if (order.status == "SUCCESS")
+        throw new Error("this order is processed");
+    if (order.status == "CANCELLED")
+        throw new Error("this order was cancelled before the payment completed");
+    //create QR based tickets
+    await prisma.$transaction(async (tx) => {
+        const claimed = await tx.order.updateMany({
+            where: { id: orderId, status: "PENDING" },
+            data: { status: "SUCCESS" }
+        });
+        if (claimed.count === 0)
+            throw new Error("this order is processed");
+        const ticketsData = [];
+        //each orderıtem represents different types of orders based on
+        //eachtickettypes
+        // `const` was missing here: the loop variable was an implicit global,
+        // which strict mode in the emitted output would have thrown on and which
+        // TypeScript reports as TS2304.
+        for (const orderItem of order.orderItems) {
+            for (let i = 0; i < orderItem.quantity; i++) {
+                ticketsData.push({
+                    userId: order.userId,
+                    ticketTypeId: orderItem.ticketTypeId,
+                    orderItemId: orderItem.id,
+                    isSold: true,
+                    soldDate: new Date()
+                });
+            }
+        }
+        await tx.ticket.createMany({
+            data: ticketsData
+        });
+        //TODO:: create workbox event and send email
+        await tx.outboxEvent.create({
+            data: {
+                type: "SEND_TICKET_EMAIL",
+                payload: {
+                    userEmail: order.user.email,
+                    fullName: order.user.fullName,
+                    orderId: orderId
+                }
+            }
+        });
+    });
+};
+exports.completePayment = completePayment;
+const createPaymentIntent = async (orderId, amount, replacing = null) => {
+    const paymentIntent = await stripe.paymentIntents.create({
+        // Number() for the same Decimal reason as in createOrder; the rounding
+        // it feeds is unchanged.
+        amount: Math.round(Number(amount) * 100),
+        metadata: { orderId: orderId },
+        currency: "try"
+    }, { idempotencyKey: replacing ? `order_${orderId}_after_${replacing}` : `order_${orderId}` });
+    await prisma.order.update({
+        where: { id: orderId },
+        data: { stripePaymentIntentId: paymentIntent.id }
+    });
+    return paymentIntent.client_secret;
+};
+exports.createPaymentIntent = createPaymentIntent;
+const findPendingOrder = async (userId, eventId) => {
+    return await prisma.order.findFirst({
+        where: { userId, eventId, status: "PENDING" },
+        include: { orderItems: true }
+    });
+};
+exports.findPendingOrder = findPendingOrder;
+const matchesCart = (order, cartItems = []) => {
+    if (order.orderItems.length !== cartItems.length)
+        return false;
+    return cartItems.every(item => order.orderItems.some(existing => existing.ticketTypeId === item.ticketTypeId
+        && existing.quantity === item.count));
+};
+exports.matchesCart = matchesCart;
+const cancelPendingOrder = async (order) => {
+    if (order.stripePaymentIntentId) {
+        const intent = await stripe.paymentIntents.retrieve(order.stripePaymentIntentId);
+        if (intent.status === "succeeded" || intent.status === "processing")
+            return false;
+        if (intent.status !== "canceled") {
+            await stripe.paymentIntents.cancel(order.stripePaymentIntentId);
+        }
+    }
+    const cancelled = await prisma.order.updateMany({
+        where: { id: order.id, status: "PENDING" },
+        data: { status: "CANCELLED" }
+    });
+    return cancelled.count > 0;
+};
+exports.cancelPendingOrder = cancelPendingOrder;
+const resumePendingOrder = async (order) => {
+    if (!order.stripePaymentIntentId) {
+        const clientSecret = await createPaymentIntent(order.id, order.totalAmount);
+        return { status: "REQUIRES_PAYMENT", clientSecret, orderId: order.id };
+    }
+    const intent = await stripe.paymentIntents.retrieve(order.stripePaymentIntentId);
+    //if payment is succeeded, and the order is stuck on pending, then we complete order on db level
+    //make it success and create qr tickets, with actual tickets
+    if (intent.status === "succeeded") {
+        // `.catch` hands back `any`, so `error.message` would have compiled while
+        // silently losing safety. errorMessage is behaviourally identical here:
+        // the only value this compares against is thrown by completePayment as a
+        // real Error.
+        await completePayment(order.id).catch(error => {
+            if ((0, errorMessage_1.errorMessage)(error) !== "this order is processed")
+                throw error;
+        });
+        return { status: "SUCCESS", orderId: order.id };
+    }
+    //if intent is cancelled, and, order stuck on pending, we recreate intent
+    //because we want the order to continue
+    if (intent.status === "canceled") {
+        const clientSecret = await createPaymentIntent(order.id, order.totalAmount, order.stripePaymentIntentId);
+        return { status: "REQUIRES_PAYMENT", clientSecret, orderId: order.id };
+    }
+    //already processing, nothing to do
+    if (intent.status === "processing") {
+        return { status: "PROCESSING", orderId: order.id };
+    }
+    //works when: requires_payment_method, requires_confirmation, requires_action
+    return { status: "REQUIRES_PAYMENT", clientSecret: intent.client_secret, orderId: order.id };
+};
+exports.resumePendingOrder = resumePendingOrder;
+//# sourceMappingURL=paymentService.js.map
