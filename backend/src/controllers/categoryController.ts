@@ -22,10 +22,7 @@ const getCategories = async (req: Request, res: Response) => {
 
 const deleteCategory = async (req: Request, res: Response) => {
     try {
-        // DİKKAT: req.body.id yerine, route'dan gelen req.params.categoryId'yi alıyoruz!
-        // @types/express@5 types a param as `string | string[]`; this route
-        // declares `:categoryId` once, so it is always the string form.
-        const categoryId = req.params.categoryId as string;
+        const categoryId = req.body.id as string;
 
         const result = await categoryService.deleteCategory(categoryId);
         return res.status(200).json(result);
