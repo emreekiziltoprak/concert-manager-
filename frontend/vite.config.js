@@ -18,6 +18,13 @@ export default defineConfig(({ mode }) => {
     build: {
       sourcemap: true,
     },
+    css: {
+      preprocessorOptions: {
+        scss: {
+          api: 'modern-compiler',
+        },
+      },
+    },
     // Değişkenleri global olarak tanımlıyoruz ki kodun her yerinden erişilebilsin
     define: {
       'process.env': env

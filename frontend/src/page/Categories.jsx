@@ -1,14 +1,16 @@
-import React, { useState, useEffect } from 'react'; // 1. useEffect import edildi
-import api from "../config/axios";
-import { Box, TextField, Button, Typography, List, ListItem, ListItemText, ListItemAvatar, Avatar } from "@mui/material";
+import React, { useState } from 'react';
+import { Paper, TextField, Button, Typography, Avatar, IconButton } from "@mui/material";
 import DeleteIcon from '@mui/icons-material/Delete';
+import { createCategory, deleteCategory } from "../api/categories";
+import { useCategories } from "../hooks/useCategories";
+
 const Categories = () => {
     const [form, setForm] = useState({
         name: "",
         slug: "",
         iconUrl: ""
     });
-    const [cats, setCats] = useState([]);
+    const { categories: cats, setCategories: setCats } = useCategories();
 
     const handleChange = (e) => {
         setForm({
@@ -19,107 +21,70 @@ const Categories = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         try {
-            const res = await api.post("/categories", form);
+            const res = await createCategory(form);
             console.log("success:", res.data);
-            
+
             if (res.data) {
                 setCats([...cats, res.data.category || { ...form, id: Date.now() }]);
             }
 
             setForm({ name: "", slug: "", iconUrl: "" });
-            
+
         } catch (err) {
             console.error("error in adding categories", err);
         }
     };
 
-    useEffect(() => {
-        api.get("/categories").then((resp) => {
-            setCats(resp.data.categories || resp.data); 
-        }).catch(err => console.error("Kategoriler yüklenemedi:", err));
-    }, []);
+    const handleDelete = async (categoryId) => {
+        try {
+            await deleteCategory(categoryId);
+            setCats((prevCats) => prevCats.filter((i) => i.id !== categoryId));
+        } catch (e) {
+            console.error("error", e);
+        }
+    };
 
     return (
-        <Box
-            sx={{
-                maxWidth: 400,
-                margin: "auto",
-                display: "flex",
-                flexDirection: "column",
-                gap: 4,
-                mt: 5,
-            }}
-        >
-            <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                <Typography variant="h5">Add Category</Typography>
+        <div className="page-container">
+        <div className="categories-page">
+            <Paper className="form-panel">
+                <Typography variant="h5" className="form-panel__title">Add Category</Typography>
 
-                <TextField
-                    label="Name"
-                    name="name"
-                    value={form.name}
-                    onChange={handleChange}
-                    required
-                />
+                <form onSubmit={handleSubmit} className="categories-page__form">
+                    <TextField label="Name" name="name" value={form.name} onChange={handleChange} required fullWidth />
+                    <TextField label="Slug" name="slug" value={form.slug} onChange={handleChange} required fullWidth />
+                    <TextField label="Icon URL" name="iconUrl" value={form.iconUrl} onChange={handleChange} fullWidth />
+                    <Button type="submit" variant="contained">
+                        Send
+                    </Button>
+                </form>
+            </Paper>
 
-                <TextField
-                    label="Slug"
-                    name="slug"
-                    value={form.slug}
-                    onChange={handleChange}
-                    required
-                />
-
-                <TextField
-                    label="Icon URL"
-                    name="iconUrl"
-                    value={form.iconUrl}
-                    onChange={handleChange}
-                />
-
-                <Button type="submit" variant="contained">
-                    Send
-                </Button>
-            </Box>
-
-            <hr style={{ border: "0.5px solid #eee", width: "100%" }} />
-
-            <Box>
-                <Typography variant="h6" sx={{ mb: 2 }}>Category List</Typography>
+            <Paper className="form-panel">
+                <Typography variant="h6" className="categories-page__list-title">Category List</Typography>
                 {cats && cats.length > 0 ? (
-                    <List>
-                        {cats.map((cat, index) => (
-                            <ListItem key={cat.id || index} disablePadding sx={{ mb: 1 }}>
-                                <ListItemAvatar>
-                                <Avatar alt="Cindy Baker" src={cat.iconUrl} />
-                              </ListItemAvatar>
-                                <ListItemText 
-                                    primary={cat.name} 
-                                    secondary={cat.slug} 
-                                />
-                                <DeleteIcon onClick={()=>{
-                                  try{
-                                    api.delete("/categories", {
-                                    data: {
-                                      id: cat.id,
-                                    },
-                                  });
-
-                                  setCats((prevCats) => prevCats.filter(i=> i.id!=cat.id));
-
-                                  }catch(e) {
-                                    console.error("error", e);
-                                  }
-                                }}/>
-                            </ListItem>
-                        ))}
-                    </List>
+                    cats.map((cat, index) => (
+                        <div className="categories-page__item" key={cat.id || index}>
+                            <div className="categories-page__item-info">
+                                <Avatar alt={cat.name} src={cat.iconUrl} />
+                                <div>
+                                    <Typography>{cat.name}</Typography>
+                                    <Typography variant="body2" color="text.secondary">{cat.slug}</Typography>
+                                </div>
+                            </div>
+                            <IconButton className="icon-action icon-action--danger" onClick={() => handleDelete(cat.id)} aria-label="Delete category">
+                                <DeleteIcon fontSize="small" />
+                            </IconButton>
+                        </div>
+                    ))
                 ) : (
-                    <Typography color="textSecondary">Henüz kategori eklenmemiş.</Typography>
+                    <Typography color="text.secondary">Henüz kategori eklenmemiş.</Typography>
                 )}
-            </Box>
-        </Box>
+            </Paper>
+        </div>
+        </div>
     );
 };
 

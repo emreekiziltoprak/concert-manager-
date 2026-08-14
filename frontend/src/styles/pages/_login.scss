@@ -1,0 +1,35 @@
+@use '../abstracts/variables' as v;
+@use '../abstracts/mixins' as m;
+
+.login-page {
+  @include m.flex($justify: center, $align: center);
+  min-height: 100vh;
+  padding: v.$space-5;
+  background: linear-gradient(160deg, v.$color-primary, v.$color-primary-dark);
+
+  &__card {
+    background: #fff;
+    border-radius: v.$radius-lg;
+    box-shadow: v.$shadow-md;
+    padding: v.$space-6;
+    max-width: 400px;
+    width: 100%;
+  }
+
+  &__title {
+    text-align: center;
+  }
+
+  &__subtitle {
+    text-align: center;
+    color: v.$color-text-secondary;
+    margin-top: v.$space-2;
+  }
+
+  &__form {
+    margin-top: v.$space-5;
+    display: flex;
+    flex-direction: column;
+    gap: v.$space-4;
+  }
+}

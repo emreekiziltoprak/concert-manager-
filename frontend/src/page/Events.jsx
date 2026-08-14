@@ -1,7 +1,6 @@
 // EventForm.jsx
 import React, { useState } from "react";
 import {
-  Box,
   Button,
   FormControl,
   Grid,
@@ -104,38 +103,43 @@ export default function EventForm() {
   
 
   return (
-    <Paper sx={{ p: 4, height: "100%", mx: "auto" }}>
-      <Typography variant="h5" mb={3}>
-        Create Event
-      </Typography>
+    <div className="page-container">
+      <div className="page-header">
+        <Typography variant="h3" className="page-header__title">
+          Events
+        </Typography>
+        <Typography variant="body1" className="page-header__subtitle">
+          Put a show on sale, then manage what's already booked.
+        </Typography>
+      </div>
 
-      <Box component="form" onSubmit={handleSubmit}>
-        <Grid container spacing={2}>
-          
+      <Paper className="form-panel">
+        <Typography variant="h5" className="form-panel__title">
+          Create Event
+        </Typography>
 
-        <FormControl fullWidth>
-            <InputLabel id="category-label">Category</InputLabel>
-            <Select 
-             labelId="category-label"
-             onChange={onSelectChange}
-             name="categoryId"
-             label="Category"
-             value={formData.categoryId}
-             >
-            {cats?.map((cat) => (
-                    <MenuItem
-                        key={cat.id}
-                        value={cat.id}
-                    >
-                        {cat.name}
+        <form onSubmit={handleSubmit}>
+          <Grid container spacing={2}>
+            <Grid size={12}>
+              <FormControl fullWidth>
+                <InputLabel id="category-label">Category</InputLabel>
+                <Select
+                  labelId="category-label"
+                  onChange={onSelectChange}
+                  name="categoryId"
+                  label="Category"
+                  value={formData.categoryId}
+                >
+                  {cats?.map((cat) => (
+                    <MenuItem key={cat.id} value={cat.id}>
+                      {cat.name}
                     </MenuItem>
-                    ))}
-            </Select>
-            
-        </FormControl>
-          
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
 
-          <Grid item xs={12}>
+            <Grid size={12}>
             <TextField
               fullWidth
               label="Title"
@@ -146,7 +150,7 @@ export default function EventForm() {
               />
           </Grid>
 
-          <Grid item xs={12}>
+          <Grid size={12}>
             <TextField
               fullWidth
               label="Slug"
@@ -157,7 +161,7 @@ export default function EventForm() {
             />
           </Grid>
 
-          <Grid item xs={12}>
+          <Grid size={12}>
             <TextField
               fullWidth
               label="Description"
@@ -169,7 +173,7 @@ export default function EventForm() {
             />
           </Grid>
 
-          <Grid item xs={12}>
+          <Grid size={12}>
             <TextField
               fullWidth
               label="Cover Image URL"
@@ -179,7 +183,7 @@ export default function EventForm() {
             />
           </Grid>
 
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <TextField
               fullWidth
               label="Start Date"
@@ -196,7 +200,7 @@ export default function EventForm() {
             />
           </Grid>
 
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <TextField
               fullWidth
               label="End Date"
@@ -213,7 +217,7 @@ export default function EventForm() {
             />
           </Grid>
 
-          <Grid item xs={12}>
+          <Grid size={12}>
             <TextField
               fullWidth
               label="Address"
@@ -223,31 +227,31 @@ export default function EventForm() {
             />
           </Grid>
 
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <TextField
               fullWidth
               label="Latitude"
               name="latitude"
               type="number"
-              inputProps={{ step: "0.000001" }}
+              slotProps={{ htmlInput: { step: "0.000001" } }}
               value={formData.latitude}
               onChange={handleChange}
             />
           </Grid>
 
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <TextField
               fullWidth
               label="Longitude"
               name="longitude"
               type="number"
-              inputProps={{ step: "0.000001" }}
+              slotProps={{ htmlInput: { step: "0.000001" } }}
               value={formData.longitude}
               onChange={handleChange}
             />
           </Grid>
 
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <TextField
               fullWidth
               label="Capacity"
@@ -259,7 +263,7 @@ export default function EventForm() {
             />
           </Grid>
 
-          <Grid item xs={12}>
+          <Grid size={12}>
             <TextField
               fullWidth
               select
@@ -279,37 +283,38 @@ export default function EventForm() {
             </TextField>
           </Grid>
 
-          <Grid item xs={12}>
-            <Button
-              type="submit"
-              variant="contained"
-              size="large"
-              disabled={loading}
-            >
-              {loading ? "Saving..." : "Create Event"}
-            </Button>
+            <Grid size={12}>
+              <Button type="submit" variant="contained" size="large" disabled={loading}>
+                {loading ? "Saving..." : "Create Event"}
+              </Button>
+            </Grid>
           </Grid>
-        </Grid>
-      </Box>
+        </form>
+      </Paper>
 
-<Grid container spacing={2}>
-        {/* EVENTS */}
-        {Array.isArray(events) && events.length > 0 && events.map((event) => {
-          return (
-            <Grid item xs={12} sm={6} md={4} key={event.id}>
+      <div className="section">
+        <Typography variant="h5" className="section__title">
+          All Events
+        </Typography>
+
+        {Array.isArray(events) && events.length > 0 ? (
+          <div className="events-page__grid">
+            {events.map((event) => (
               <EventCard
+                key={event.id}
                 event={event}
-                categories={cats}
                 onEventUpdated={refreshEvents}
                 onEditClick={(event) => {
                   setSelectedEvent(event);
                   setEditModalOpen(true);
                 }}
               />
-            </Grid>
-          );
-        })}
-      </Grid>
+            ))}
+          </div>
+        ) : (
+          <Typography className="events-page__empty">No events yet — create the first one above.</Typography>
+        )}
+      </div>
 
       <EditEventModal
         open={editModalOpen}
@@ -318,6 +323,6 @@ export default function EventForm() {
         categories={cats}
         onEventUpdated={refreshEvents}
       />
-    </Paper>
+    </div>
   );
 }

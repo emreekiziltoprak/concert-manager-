@@ -1,0 +1,29 @@
+@use '../abstracts/variables' as v;
+
+// Rounded filter pill — applied via className on a MUI Button so the
+// filter-bar look matches the reference site without touching sx.
+.pill-filter {
+  border-radius: v.$radius-full;
+  border: 1px solid v.$color-border;
+  color: v.$color-text-secondary;
+  background: v.$color-bg;
+  font-weight: 600;
+
+  &--active {
+    background: v.$color-primary;
+    border-color: v.$color-primary;
+    color: #fff;
+  }
+}
+
+.icon-action {
+  color: v.$color-text-secondary;
+
+  &:hover {
+    color: v.$color-primary;
+  }
+
+  &--danger:hover {
+    color: v.$color-error;
+  }
+}

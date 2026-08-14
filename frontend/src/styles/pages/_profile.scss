@@ -1,0 +1,76 @@
+@use '../abstracts/variables' as v;
+@use '../abstracts/mixins' as m;
+
+.profile-page {
+  &__head {
+    @include m.flex($gap: v.$space-4);
+    margin-bottom: v.$space-6;
+  }
+
+  &__avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: v.$color-primary-light;
+  }
+
+  &__avatar-fallback {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: v.$color-primary-light;
+    color: v.$color-primary;
+    @include m.flex($justify: center, $align: center);
+    font-weight: 700;
+    font-size: v.$fs-lg;
+  }
+
+  &__orders {
+    display: flex;
+    flex-direction: column;
+    gap: v.$space-4;
+  }
+
+  &__order-card {
+    @include m.card;
+    padding: v.$space-5;
+  }
+
+  &__order-head {
+    margin-bottom: v.$space-3;
+  }
+
+  &__tickets {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: v.$space-3;
+  }
+
+  &__ticket {
+    @include m.card;
+    padding: v.$space-3;
+    text-align: center;
+    position: relative;
+
+    &--used {
+      opacity: 0.55;
+    }
+  }
+
+  &__ticket-badge {
+    position: absolute;
+    top: v.$space-2;
+    right: v.$space-2;
+    background: rgba(17, 24, 39, 0.75);
+    color: #fff;
+    font-size: v.$fs-xs;
+    padding: 2px 6px;
+    border-radius: v.$radius-sm;
+  }
+
+  &__empty {
+    text-align: center;
+    padding: v.$space-8 0;
+  }
+}

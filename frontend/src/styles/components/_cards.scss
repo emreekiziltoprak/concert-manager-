@@ -1,0 +1,144 @@
+@use '../abstracts/variables' as v;
+@use '../abstracts/mixins' as m;
+
+// Minimal list-card: thumbnail + stacked meta rows, no border/shadow — the
+// flat, image-forward pattern the reference listing sites use throughout.
+.event-card {
+  @include m.flex($align: flex-start, $gap: v.$space-4);
+
+  &__media {
+    flex: 0 0 128px;
+    width: 128px;
+    height: 88px;
+    border-radius: v.$radius-md;
+    overflow: hidden;
+    background: v.$color-bg-subtle;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  &__body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__title {
+    font-size: v.$fs-md;
+    font-weight: 700;
+    color: v.$color-text;
+    @include m.truncate(2);
+  }
+
+  &__meta {
+    margin-top: v.$space-2;
+    display: flex;
+    flex-direction: column;
+    gap: v.$space-1;
+  }
+
+  &__meta-row {
+    @include m.flex($gap: v.$space-1);
+    color: v.$color-text-secondary;
+    font-size: v.$fs-sm;
+
+    svg {
+      font-size: 16px;
+      color: v.$color-text-muted;
+      flex-shrink: 0;
+    }
+  }
+
+  &__price {
+    color: v.$color-primary;
+    font-weight: 700;
+  }
+
+  &__status {
+    margin-left: v.$space-2;
+  }
+
+  &__actions {
+    @include m.flex($justify: flex-end, $gap: v.$space-1);
+    margin-top: v.$space-3;
+  }
+}
+
+// Bordered option card used for ticket types (event detail buyer view and
+// the organizer's edit-event dialog).
+.ticket-type-card {
+  @include m.card;
+  padding: v.$space-4;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  &--editing {
+    border-color: v.$color-primary;
+    border-width: 2px;
+  }
+
+  &__head {
+    @include m.flex($justify: space-between, $align: flex-start, $gap: v.$space-2);
+  }
+
+  &__name {
+    font-weight: 700;
+  }
+
+  &__category {
+    color: v.$color-text-secondary;
+    font-size: v.$fs-sm;
+    margin-top: v.$space-1;
+  }
+
+  &__price {
+    color: v.$color-primary;
+    font-weight: 700;
+    font-size: v.$fs-md;
+    margin: v.$space-2 0;
+  }
+
+  &__meta {
+    color: v.$color-text-secondary;
+    font-size: v.$fs-sm;
+  }
+
+  &__actions {
+    margin-top: auto;
+    @include m.flex($justify: flex-end, $gap: v.$space-1);
+    padding-top: v.$space-3;
+  }
+}
+
+// Ticket line item (cart / order history).
+.ticket-line {
+  @include m.card;
+  padding: v.$space-4;
+
+  &--unavailable {
+    border-color: v.$color-error;
+  }
+
+  &__row {
+    @include m.flex($justify: space-between, $align: flex-start, $gap: v.$space-3);
+  }
+
+  &__title {
+    font-weight: 700;
+  }
+
+  &__subtitle {
+    color: v.$color-text-secondary;
+    font-size: v.$fs-sm;
+    margin-top: v.$space-1;
+  }
+
+  &__price {
+    color: v.$color-primary;
+    font-weight: 700;
+  }
+}

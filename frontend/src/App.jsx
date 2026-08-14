@@ -1,7 +1,3 @@
-import './App.css'
-
-
-import  Header from './page/Header'
 import Categories from './page/Categories'
 import Users from './page/Users'
 import Events from './page/Events'

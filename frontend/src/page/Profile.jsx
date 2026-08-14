@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Box, Button, Card, CardContent, Typography, CircularProgress, Alert, Divider } from "@mui/material";
-import api from "../config/axios";
+import { Button, Typography, CircularProgress, Alert, Divider } from "@mui/material";
+import { getProfile } from "../api/users";
 import { QRCodeSVG } from 'qrcode.react';
 
 const Profile = () => {
@@ -12,7 +12,7 @@ const Profile = () => {
     const fetchProfile = async () => {
       try {
         setLoading(true);
-        const response = await api.get("/users/profile");
+        const response = await getProfile();
         setProfile(response.data);
         setLoading(false);
       } catch (err) {
@@ -27,25 +27,25 @@ const Profile = () => {
 
   if (loading) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+      <div className="centered-panel">
         <CircularProgress />
-      </Box>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+      <div className="centered-panel">
         <Alert severity="error">{error}</Alert>
-      </Box>
+      </div>
     );
   }
 
   if (!profile) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+      <div className="centered-panel">
         <Alert severity="warning">No profile data found.</Alert>
-      </Box>
+      </div>
     );
   }
 
@@ -55,149 +55,100 @@ const Profile = () => {
   const sortedOrders = [...orders].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   return (
-    <Box sx={{ p: 4 }}>
-      <Box sx={{ display: "flex", alignItems: "center", mb: 4 }}>
+    <div className="page-container profile-page">
+      <div className="profile-page__head">
         {avatarUrl ? (
-          <Box
-            component="img"
-            src={avatarUrl}
-            alt="Avatar"
-            sx={{ width: 80, height: 80, borderRadius: "50%", objectFit: "cover" }}
-          />
+          <img className="profile-page__avatar" src={avatarUrl} alt="Avatar" />
         ) : (
-          <Box sx={{ width: 80, height: 80, bgcolor: "grey.300", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Typography variant="h6">{fullName?.charAt(0) || "?"}</Typography>
-          </Box>
+          <div className="profile-page__avatar-fallback">{fullName?.charAt(0) || "?"}</div>
         )}
-        <Box sx={{ ml: 3 }}>
+        <div>
           <Typography variant="h4">{fullName}</Typography>
           <Typography variant="body2" color="text.secondary">
             {email}
           </Typography>
-          {bio && (
-            <Typography variant="body1" mt={1}>
-              {bio}
-            </Typography>
-          )}
-          {phoneNumber && (
-            <Typography variant="body2" mt={1}>
-              {phoneNumber}
-            </Typography>
-          )}
-          <Typography variant="body2" mt={1}>
-            Role: {role}
-          </Typography>
-        </Box>
-      </Box>
+          {bio && <Typography variant="body1">{bio}</Typography>}
+          {phoneNumber && <Typography variant="body2">{phoneNumber}</Typography>}
+          <Typography variant="body2">Role: {role}</Typography>
+        </div>
+      </div>
 
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h5" gutterBottom>
+      <div className="section">
+        <Typography variant="h5" className="section__title">
           My Orders
         </Typography>
+
         {sortedOrders.length === 0 ? (
-          <Box sx={{ textAlign: "center", py: 4 }}>
-            <Typography variant="body1">
-              You haven't purchased any tickets yet.
-            </Typography>
-            <Button
-              variant="contained"
-              color="primary"
-              sx={{ mt: 2 }}
-              onClick={() => window.location.href = "/events"}
-            >
+          <div className="profile-page__empty">
+            <Typography variant="body1">You haven't purchased any tickets yet.</Typography>
+            <Button variant="contained" color="primary" onClick={() => window.location.href = "/events"}>
               Browse Events
             </Button>
-          </Box>
+          </div>
         ) : (
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+          <div className="profile-page__orders">
             {sortedOrders.map((order) => {
               const event = order.event;
               const orderDate = new Date(order.createdAt).toLocaleString();
 
               return (
-                <Card key={order.id} sx={{ border: "1px solid grey.300" }}>
-                  <CardContent>
-                    {event && (
-                      <Box sx={{ mb: 2 }}>
-                        <Typography variant="h6" component="div">
-                          {event.title}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {new Date(event.startDate).toLocaleString()}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary" mt={1}>
-                          Order Date: {orderDate}
-                        </Typography>
-                      </Box>
-                    )}
+                <div className="profile-page__order-card" key={order.id}>
+                  {event && (
+                    <div className="profile-page__order-head">
+                      <Typography variant="h6">{event.title}</Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {new Date(event.startDate).toLocaleString()}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Order Date: {orderDate}
+                      </Typography>
+                    </div>
+                  )}
 
-                    <Divider sx={{ my: 2 }} />
+                  <Divider className="divider-spacing" />
 
-                    {order.orderItems && order.orderItems.length > 0 ? (
-                      <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 2 }}>
-                        {order.orderItems.map((item) => {
-                          const ticketType = item.ticketType;
-                          const tickets = item.tickets || [];
+                  {order.orderItems && order.orderItems.length > 0 ? (
+                    <div className="profile-page__tickets">
+                      {order.orderItems.map((item) => {
+                        const ticketType = item.ticketType;
+                        const tickets = item.tickets || [];
 
+                        return tickets.map((ticket) => {
+                          const isUsed = ticket.isUsed ?? false;
                           return (
-                            <Box key={item.id} sx={{ border: "1px solid grey.200", borderRadius: 1, p: 2 }}>
-                              <Typography variant="body1" color="text.secondary" gutterBottom>
-                                Ticket Type:
-                              </Typography>
-                              <Typography variant="h6" gutterBottom>
+                            <div
+                              className={`profile-page__ticket${isUsed ? " profile-page__ticket--used" : ""}`}
+                              key={ticket.id}
+                            >
+                              {isUsed && <span className="profile-page__ticket-badge">Used</span>}
+                              <Typography variant="body2" color="text.secondary">
                                 {ticketType?.name || "Standard"}
                               </Typography>
-                              
-                              {tickets.map((ticket) => {
-                                const isUsed = ticket.isUsed ?? false;
-                                return (
-                                  <Box key={ticket.id} sx={{ position: "relative", mt: 1, p: 1, border: "1px dashed grey.300", borderRadius: 1, opacity: isUsed ? 0.6 : 1 }}>
-                                    <Box sx={{ textAlign: "center" }}>
-                                      <QRCodeSVG
-                                        value={ticket.id}
-                                        size={100}
-                                        level="H"
-                                        includeMargin={false}
-                                      />
-                                      <Typography variant="body2" mt={1}>
-                                        Ticket ID: {ticket.id}
-                                      </Typography>
-                                      {isUsed && (
-                                        <Box sx={{ position: "absolute", top: 4, right: 4, background: "rgba(0,0,0,0.7)", color: "white", px: 1, borderRadius: 0.5 }}>
-                                          <Typography variant="caption">Used</Typography>
-                                        </Box>
-                                      )}
-                                    </Box>
-                                  </Box>
-                                );
-                              })}
-                            </Box>
+                              <QRCodeSVG value={ticket.id} size={100} level="H" includeMargin={false} />
+                              <Typography variant="caption">Ticket ID: {ticket.id}</Typography>
+                            </div>
                           );
-                        })}
-                      </Box>
-                    ) : (
-                      <Typography variant="body2" color="text.secondary">
-                        No tickets in this order.
-                      </Typography>
-                    )}
-                  </CardContent>
-                </Card>
+                        });
+                      })}
+                    </div>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">
+                      No tickets in this order.
+                    </Typography>
+                  )}
+                </div>
               );
             })}
-          </Box>
+          </div>
         )}
-      </Box>
+      </div>
 
-      <Box sx={{ textAlign: "center", mt: 6 }}>
-        <Button
-          variant="outlined"
-          color="primary"
-          onClick={() => window.location.href = "/events"}
-        >
+      <div className="profile-page__empty">
+        <Button variant="outlined" color="primary" onClick={() => window.location.href = "/events"}>
           Browse Events
         </Button>
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 };
 

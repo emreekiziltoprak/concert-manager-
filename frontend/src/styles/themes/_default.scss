@@ -1,0 +1,13 @@
+@use '../abstracts/variables' as v;
+
+// CSS custom properties mirror of the SCSS tokens, for the rare spot that
+// needs a runtime value (MUI's `component` prop targets, third-party
+// widgets) rather than a compile-time one.
+:root {
+  --color-primary: #{v.$color-primary};
+  --color-primary-dark: #{v.$color-primary-dark};
+  --color-bg-subtle: #{v.$color-bg-subtle};
+  --color-border: #{v.$color-border};
+  --color-text: #{v.$color-text};
+  --color-text-secondary: #{v.$color-text-secondary};
+}

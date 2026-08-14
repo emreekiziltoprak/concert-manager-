@@ -1,18 +1,29 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
 
 import AppBar from "@mui/material/AppBar";
-import Toolbar from "@mui/material/Toolbar";
 import Button from "@mui/material/Button";
-import Typography from "@mui/material/Typography";
-import Box from "@mui/material/Box";
 import Badge from "@mui/material/Badge";
+import IconButton from "@mui/material/IconButton";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
+import MenuIcon from "@mui/icons-material/Menu";
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { useAuth } from "../authContext/authcontext";
 import { useCart } from "../context/cartContext";
+
+const navLinks = [
+  { to: "/events", label: "Events" },
+  { to: "/users", label: "Users" },
+  { to: "/categories", label: "Categories" },
+  { to: "/profile", label: "Profile" },
+];
 
 export default function Header() {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const { getCartItemCount } = useCart();
+  const [menuAnchor, setMenuAnchor] = useState(null);
 
   const handleLogout = () => {
     logout();
@@ -20,52 +31,68 @@ export default function Header() {
   };
 
   return (
-    <AppBar position="static">
-      <Toolbar>
-
-        {/* LEFT - Logo */}
-        <Typography
-          variant="h6"
-          sx={{ flexGrow: 1 }}
+    <AppBar position="sticky" className="app-header">
+      <div className="app-header__bar">
+        <IconButton
+          className="app-header__menu-btn"
+          onClick={(e) => setMenuAnchor(e.currentTarget)}
+          aria-label="Open navigation menu"
         >
-          Admin Panel
-        </Typography>
+          <MenuIcon htmlColor="#fff" />
+        </IconButton>
 
-        {/* NAV LINKS */}
-        <Box sx={{ display: "flex", gap: 2, mr: 2 }}>
-          <Button color="inherit" component={Link} to="/events">
-            Events
-          </Button>
+        <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={() => setMenuAnchor(null)}>
+          {navLinks.map((link) => (
+            <MenuItem key={link.to} component={NavLink} to={link.to} onClick={() => setMenuAnchor(null)}>
+              {link.label}
+            </MenuItem>
+          ))}
+          <MenuItem component={NavLink} to="/my-cart" onClick={() => setMenuAnchor(null)}>
+            Sepetim {getCartItemCount() ? `(${getCartItemCount()})` : ""}
+          </MenuItem>
+        </Menu>
 
-          <Button color="inherit" component={Link} to="/users">
-            Users
-          </Button>
+        <NavLink to="/events" className="app-header__logo">
+          Event<span className="app-header__logo-accent">Hub</span>
+        </NavLink>
 
-          <Button color="inherit" component={Link} to="/profile">
-            Profile
-          </Button>
-
-          <Button color="inherit" component={Link} to="/categories">
-            Categories
-          </Button>
-
-          <Button color="inherit" component={Link} to="/my-cart">
-            <Badge badgeContent={getCartItemCount()} color="secondary">
+        <nav className="app-header__nav">
+          {navLinks.map((link) => (
+            <NavLink
+              key={link.to}
+              to={link.to}
+              className={({ isActive }) => `app-header__nav-link${isActive ? " active" : ""}`}
+            >
+              {link.label}
+            </NavLink>
+          ))}
+          <NavLink
+            to="/my-cart"
+            className={({ isActive }) => `app-header__nav-link${isActive ? " active" : ""}`}
+          >
+            <Badge badgeContent={getCartItemCount()} color="error">
               Sepetim
             </Badge>
+          </NavLink>
+        </nav>
+
+        <div className="app-header__actions">
+          <IconButton
+            component={NavLink}
+            to="/my-cart"
+            className="app-header__cart-btn"
+            aria-label="Sepetim"
+          >
+            <Badge badgeContent={getCartItemCount()} color="error">
+              <ShoppingCartIcon htmlColor="#fff" />
+            </Badge>
+          </IconButton>
+
+          <Button variant="outlined" className="app-header__logout" onClick={handleLogout}>
+            Logout
           </Button>
-        </Box>
-
-        {/* LOGOUT */}
-        <Button
-          color="error"
-          variant="contained"
-          onClick={handleLogout}
-        >
-          Logout
-        </Button>
-
-      </Toolbar>
+        </div>
+      </div>
     </AppBar>
   );
 }

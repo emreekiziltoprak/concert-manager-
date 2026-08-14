@@ -1,0 +1,28 @@
+@use '../abstracts/variables' as v;
+@use '../abstracts/mixins' as m;
+
+.events-page {
+  &__filters {
+    @include m.flex($gap: v.$space-2, $justify: flex-start);
+    flex-wrap: wrap;
+    margin-bottom: v.$space-6;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: v.$space-5 v.$space-6;
+
+    @include m.respond(md) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    @include m.respond(lg) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  &__empty {
+    color: v.$color-text-secondary;
+  }
+}

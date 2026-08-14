@@ -1,13 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import {
-  Box,
-  Typography,
-  Paper,
-  Button,
-  Alert,
-  CircularProgress,
-} from "@mui/material";
+import { Typography, Button, Alert, CircularProgress } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
 import { useNavigate } from "react-router-dom";
@@ -38,40 +31,26 @@ export default function PaymentSuccessPage() {
 
   if (status === "loading") {
     return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="60vh"
-      >
+      <div className="centered-panel">
         <CircularProgress />
-      </Box>
+      </div>
     );
   }
 
   return (
-    <Box
-      display="flex"
-      justifyContent="center"
-      alignItems="center"
-      minHeight="60vh"
-    >
-      <Paper sx={{ p: 4, maxWidth: 500, width: "100%", textAlign: "center" }}>
+    <div className="centered-panel">
+      <div className="centered-panel__card">
         {status === "success" && (
           <>
-            <CheckCircleIcon color="success" sx={{ fontSize: 64, mb: 2 }} />
+            <CheckCircleIcon color="success" className="status-icon" />
             <Typography variant="h4" gutterBottom>
               Payment Successful!
             </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+            <Typography variant="body1" color="text.secondary" className="alert-spacing">
               Thank you for your purchase. Your tickets have been confirmed.
               Check your email for the confirmation and ticket details.
             </Typography>
-            <Button
-              variant="contained"
-              size="large"
-              onClick={() => navigate("/events")}
-            >
+            <Button variant="contained" size="large" onClick={() => navigate("/events")}>
               Back to Events
             </Button>
           </>
@@ -79,19 +58,15 @@ export default function PaymentSuccessPage() {
 
         {status === "processing" && (
           <>
-            <CircularProgress sx={{ mb: 2 }} />
+            <CircularProgress className="alert-spacing" />
             <Typography variant="h4" gutterBottom>
               Payment Processing
             </Typography>
-            <Alert severity="info" sx={{ mb: 3 }}>
+            <Alert severity="info" className="alert-spacing">
               Your bank is still reviewing this payment. We will email your
               tickets as soon as it clears — there is no need to pay again.
             </Alert>
-            <Button
-              variant="contained"
-              size="large"
-              onClick={() => navigate("/events")}
-            >
+            <Button variant="contained" size="large" onClick={() => navigate("/events")}>
               Back to Events
             </Button>
           </>
@@ -99,23 +74,19 @@ export default function PaymentSuccessPage() {
 
         {status === "failed" && (
           <>
-            <ErrorIcon color="error" sx={{ fontSize: 64, mb: 2 }} />
+            <ErrorIcon color="error" className="status-icon" />
             <Typography variant="h4" gutterBottom>
               Payment Failed
             </Typography>
-            <Alert severity="error" sx={{ mb: 3 }}>
+            <Alert severity="error" className="alert-spacing">
               Your payment could not be processed. Please try again.
             </Alert>
-            <Button
-              variant="contained"
-              size="large"
-              onClick={() => navigate("/events")}
-            >
+            <Button variant="contained" size="large" onClick={() => navigate("/events")}>
               Try Again
             </Button>
           </>
         )}
-      </Paper>
-    </Box>
+      </div>
+    </div>
   );
 }

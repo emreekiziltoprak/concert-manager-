@@ -1,10 +1,12 @@
 import React from 'react';
+import { Typography } from "@mui/material";
 
-//list all users
 const Users = () => {
     return (
-        <div>
-            
+        <div className="centered-panel">
+            <Typography variant="h6" color="text.secondary">
+                User management is coming soon.
+            </Typography>
         </div>
     );
 };
