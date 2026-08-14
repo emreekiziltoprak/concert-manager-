@@ -1,12 +1,13 @@
-const { prisma, truncateAll, disconnect } = require("../helpers/db");
-const { createTestUser, createTestEvent, createTestTicketType } = require("../helpers/fixtures");
+import { prisma, truncateAll, disconnect } from "../helpers/db";
+import { createTestUser, createTestEvent, createTestTicketType } from "../helpers/fixtures";
+import type { Event, User } from "../../generated/prisma";
 
 jest.mock("../../src/utils/stripeClient", () => require("../helpers/stripeMock"));
 
-const paymentService = require("../../src/services/paymentService");
+import * as paymentService from "../../src/services/paymentService";
 
-let user;
-let event;
+let user: User;
+let event: Event;
 
 beforeEach(async () => {
   await truncateAll();
@@ -32,7 +33,7 @@ test("only one of two concurrent orders succeeds when only one ticket is left", 
 
   expect(fulfilled).toHaveLength(1);
   expect(rejected).toHaveLength(1);
-  expect(rejected[0].reason.message).toBe("there is no enough tickets");
+  expect((rejected[0] as PromiseRejectedResult).reason.message).toBe("there is no enough tickets");
 
   const orders = await prisma.order.findMany({ where: { eventId: event.id } });
   expect(orders).toHaveLength(1);

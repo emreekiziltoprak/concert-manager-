@@ -1,7 +1,7 @@
-const request = require("supertest");
-const app = require("../../src/app");
-const { prisma, truncateAll, disconnect } = require("../helpers/db");
-const {
+import request from "supertest";
+import app from "../../src/app";
+import { prisma, truncateAll, disconnect } from "../helpers/db";
+import {
   createTestCategory,
   createTestUser,
   createTestEvent,
@@ -9,21 +9,22 @@ const {
   createTestEventRole,
   createTestOrder,
   createAuthToken
-} = require("../helpers/fixtures");
+} from "../helpers/fixtures";
+import type { Event, OrderStatus, TicketType, User } from "../../generated/prisma";
 
 // Every actor the event-role middleware distinguishes.
-let organizer;      // event.organizerId + an OWNER EventRole row
-let coOrganiser;    // CO_ORGANISER EventRole row only
-let admin;          // global ADMIN, no relationship to the event
-let outsider;       // authenticated but unrelated
-let event;
+let organizer: User;      // event.organizerId + an OWNER EventRole row
+let coOrganiser: User;    // CO_ORGANISER EventRole row only
+let admin: User;          // global ADMIN, no relationship to the event
+let outsider: User;       // authenticated but unrelated
+let event: Event;
 
-let organizerToken;
-let coOrganiserToken;
-let adminToken;
-let outsiderToken;
+let organizerToken: string;
+let coOrganiserToken: string;
+let adminToken: string;
+let outsiderToken: string;
 
-const ticketTypesUrl = (eventId) => `/api/events/${eventId}/ticket-types`;
+const ticketTypesUrl = (eventId: string) => `/api/events/${eventId}/ticket-types`;
 
 const validBody = (overrides = {}) => ({
   name: "VIP",
@@ -73,9 +74,9 @@ describe("POST /api/events/:eventId/ticket-types", () => {
     const stored = await prisma.ticketType.findUnique({
       where: { id: response.body.ticketType.id }
     });
-    expect(stored.totalCount).toBe(40);
-    expect(stored.category).toBe("CHILD");
-    expect(stored.isActive).toBe(true);
+    expect(stored!.totalCount).toBe(40);
+    expect(stored!.category).toBe("CHILD");
+    expect(stored!.isActive).toBe(true);
   });
 
   test("creates a ticket type for a CO_ORGANISER", async () => {
@@ -227,7 +228,7 @@ describe("POST /api/events/:eventId/ticket-types", () => {
 });
 
 describe("PUT /api/events/:eventId/ticket-types/:ticketTypeId", () => {
-  let ticketType;
+  let ticketType: TicketType;
 
   beforeEach(async () => {
     ticketType = await createTestTicketType({
@@ -247,11 +248,11 @@ describe("PUT /api/events/:eventId/ticket-types/:ticketTypeId", () => {
     expect(response.status).toBe(200);
 
     const stored = await prisma.ticketType.findUnique({ where: { id: ticketType.id } });
-    expect(stored.name).toBe("Renamed");
-    expect(Number(stored.price)).toBe(75);
-    expect(stored.totalCount).toBe(30);
-    expect(stored.category).toBe("STUDENT");
-    expect(stored.isActive).toBe(false);
+    expect(stored!.name).toBe("Renamed");
+    expect(Number(stored!.price)).toBe(75);
+    expect(stored!.totalCount).toBe(30);
+    expect(stored!.category).toBe("STUDENT");
+    expect(stored!.isActive).toBe(false);
   });
 
   test("accepts its own unchanged name and category", async () => {
@@ -346,7 +347,7 @@ describe("PUT /api/events/:eventId/ticket-types/:ticketTypeId", () => {
     expect(response.body.error).toMatch(/already/i);
 
     const stored = await prisma.ticketType.findUnique({ where: { id: ticketType.id } });
-    expect(stored.totalCount).toBe(20);
+    expect(stored!.totalCount).toBe(20);
   });
 
   test("allows lowering the capacity to exactly the reserved quantity", async () => {
@@ -399,7 +400,7 @@ describe("PUT /api/events/:eventId/ticket-types/:ticketTypeId", () => {
     expect(response.status).toBe(404);
 
     const stored = await prisma.ticketType.findUnique({ where: { id: otherTicketType.id } });
-    expect(stored.name).toBe("Elsewhere");
+    expect(stored!.name).toBe("Elsewhere");
   });
 
   test.each([
@@ -425,7 +426,7 @@ describe("PUT /api/events/:eventId/ticket-types/:ticketTypeId", () => {
 });
 
 describe("DELETE /api/events/:eventId/ticket-types/:ticketTypeId", () => {
-  let ticketType;
+  let ticketType: TicketType;
 
   beforeEach(async () => {
     ticketType = await createTestTicketType({
@@ -447,7 +448,7 @@ describe("DELETE /api/events/:eventId/ticket-types/:ticketTypeId", () => {
 
   // Ticket.ticketTypeId and OrderItem.ticketTypeId are ON DELETE RESTRICT, so
   // every order status blocks the delete -- cancelled ones included.
-  test.each(["PENDING", "SUCCESS", "CANCELLED"])(
+  test.each(["PENDING", "SUCCESS", "CANCELLED"] as OrderStatus[])(
     "returns 409 when a %s order references the ticket type",
     async (status) => {
       await createTestOrder({
@@ -480,7 +481,7 @@ describe("DELETE /api/events/:eventId/ticket-types/:ticketTypeId", () => {
     await prisma.ticket.create({
       data: {
         ticketTypeId: ticketType.id,
-        orderItemId: order.orderItems[0].id,
+        orderItemId: order.orderItems[0]!.id,
         userId: outsider.id,
         isSold: true
       }
@@ -582,7 +583,7 @@ describe("GET /api/events/:eventId", () => {
     expect(response.status).toBe(200);
 
     const byId = Object.fromEntries(
-      response.body.event.ticketTypes.map((ticketType) => [ticketType.id, ticketType])
+      response.body.event.ticketTypes.map((ticketType: { id: string }) => [ticketType.id, ticketType])
     );
     expect(byId[sold.id].soldCount).toBe(7);
     expect(byId[untouched.id].soldCount).toBe(0);
@@ -689,6 +690,6 @@ describe("event-level authorization", () => {
     expect(roles[0]).toMatchObject({ userId: organizer.id, role: "OWNER" });
 
     const created = await prisma.event.findUnique({ where: { id: createdId } });
-    expect(created.organizerId).toBe(organizer.id);
+    expect(created!.organizerId).toBe(organizer.id);
   });
 });
