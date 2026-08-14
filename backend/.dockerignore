@@ -1,3 +1,12 @@
 node_modules
 .env
 npm-debug.log
+
+# Built output. Without this, `COPY . .` in the builder stage overwrites the
+# freshly compiled dist/ with whatever stale build happens to be on the host.
+dist
+
+# Regenerated inside the image by `npx prisma generate`.
+generated
+
+tests
