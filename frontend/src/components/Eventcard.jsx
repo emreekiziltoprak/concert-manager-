@@ -14,7 +14,7 @@ import LocationOnIcon from "@mui/icons-material/LocationOn";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useNavigate } from "react-router";
-import api from "../config/axios";
+import { deleteEvent } from "../api/events";
 
 export default function EventCard({ event, categories, onEventUpdated, onEditClick }) {
   const navigate = useNavigate();
@@ -22,7 +22,7 @@ export default function EventCard({ event, categories, onEventUpdated, onEditCli
   const handleDelete = async () => {
     if (!window.confirm("Are you sure you want to delete this event?")) return;
     try {
-      await api.delete(`/events/${event.id}`);
+      await deleteEvent(event.id);
       onEventUpdated?.();
     } catch (error) {
       console.error(error);

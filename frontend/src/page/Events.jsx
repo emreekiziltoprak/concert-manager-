@@ -1,5 +1,5 @@
 // EventForm.jsx
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Box,
   Button,
@@ -12,47 +12,20 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import api from "../config/axios";
+import { createEvent } from "../api/events";
+import { useEvents } from "../hooks/useEvents";
+import { useCategories } from "../hooks/useCategories";
+import { statusOptions, initialEventFormValues } from "../constants/events";
 import EventCard from "../components/Eventcard";
 import EditEventModal from "../components/EditEventModal";
 
-const initialState = {
-  organizerId: "",
-  categoryId: "",
-  title: "",
-  slug: "",
-  description: "",
-  coverImageUrl: "",
-  startDate: "",
-  endDate: "",
-  address: "",
-  latitude: "",
-  longitude: "",
-  capacity: "",
-  status: "DRAFT",
-};
-
-const statusOptions = [
-  { label: "Draft", value: "DRAFT" },
-  { label: "Published", value: "PUBLISHED" },
-  { label: "Cancelled", value: "CANCELLED" },
-  { label: "Completed", value: "COMPLETED" },
-  { label: "Archived", value: "ARCHIVED" },
-];
-
 export default function EventForm() {
-  const [formData, setFormData] = useState(initialState);
+  const [formData, setFormData] = useState({ ...initialEventFormValues, organizerId: "" });
   const [loading, setLoading] = useState(false);
-  const [cats, setCats] = useState([]);
-  const [events, setEvents] = useState([]);
+  const { categories: cats } = useCategories();
+  const { events, refetch: refreshEvents } = useEvents();
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
-
-  const refreshEvents = () => {
-    api.get("/events").then(r => {
-      setEvents(r.data.events);
-    });
-  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -77,16 +50,6 @@ export default function EventForm() {
       }));
     }
   };
-
-  useEffect(()=>{
-    api.get("/categories").then(c=>{
-     setCats(c.data.categories);
-    });
-
-    api.get("/events").then(r=> {
-      setEvents(r.data.events);
-    });
-  },[]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -117,10 +80,10 @@ export default function EventForm() {
           : null,
       };
 
-      await api.post("/events", payload);
+      await createEvent(payload);
 
       alert("Event created successfully!");
-      setFormData(initialState);
+      setFormData({ ...initialEventFormValues, organizerId: "" });
       refreshEvents();
     } catch (error) {
       console.error(error);
